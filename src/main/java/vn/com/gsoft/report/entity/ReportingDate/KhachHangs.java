@@ -23,84 +23,83 @@ public class KhachHangs extends BaseEntity {
     @GeneratedValue(strategy=GenerationType.IDENTITY)
     private Long id;
     @Column(name = "TenKhachHang")
-    private String tenKhachHang;
+    private String tenKhachHang; // Tên khách hàng
     @Column(name = "DiaChi")
-    private String diaChi;
+    private String diaChi; // Địa chỉ
     @Column(name = "SoDienThoai")
-    private String soDienThoai;
+    private String soDienThoai; // Số điện thoại
     @Column(name = "NoDauKy" , columnDefinition = "decimal default 0")
-    private BigDecimal noDauKy;
+    private BigDecimal noDauKy; // Nợ đầu kỳ
     @Column(name = "DonViCongTac")
-    private String donViCongTac;
+    private String donViCongTac; // Đơn vị công tác
     @Column(name = "Email")
-    private String email;
+    private String email; // Email
     @Column(name = "GhiChu")
-    private String ghiChu;
+    private String ghiChu; // Ghi chú
     @Column(name = "MaNhaThuoc")
-    private String maNhaThuoc;
+    private String maNhaThuoc; // Mã nhà thuốc
     @Column(name = "MaNhomKhachHang")
-    private Long maNhomKhachHang;
+    private Long maNhomKhachHang; // Mã nhóm khách hàng
     @Column(name = "Active")
-    private Boolean active;
+    private Boolean active; // Hoạt động
     @Column(name = "CustomerTypeId" , columnDefinition = "integer default 0")
-    private Integer customerTypeId;
+    private Integer customerTypeId; // Loại khách hàng
     @Column(name = "BarCode")
-    private String barCode;
+    private String barCode; // Mã vạch
     @Column(name = "BirthDate")
-    private Date birthDate;
+    private Date birthDate; // Ngày sinh
     @Column(name = "Code")
-    private String code;
+    private String code; // Mã
     @Column(name = "Score", columnDefinition = "decimal default 0")
-    private BigDecimal score;
+    private BigDecimal score; // Điểm
     @Column(name = "InitScore", columnDefinition = "decimal default 0")
-    private BigDecimal initScore;
+    private BigDecimal initScore; // Điểm khởi tạo
     @Column(name = "ArchivedId", columnDefinition = "integer default 0")
-    private Integer archivedId;
+    private Integer archivedId; // ID đã lưu trữ
     @Column(name = "ReferenceId", columnDefinition = "integer default 0")
-    private Integer referenceId;
+    private Integer referenceId; // ID tham chiếu
     @Column(name = "StoreId", columnDefinition = "integer default 0")
-    private Integer storeId;
+    private Integer storeId; // ID cửa hàng
     @Column(name = "RegionId", columnDefinition = "integer default 0" )
-    private Integer regionId;
+    private Integer regionId; // ID khu vực
     @Column(name = "CityId",columnDefinition = "integer default 0")
-    private Integer cityId;
+    private Integer cityId; // ID thành phố
     @Column(name = "WardId", columnDefinition = "integer default 0")
-    private Integer wardId;
+    private Integer wardId; // ID phường
     @Column(name = "MasterId", columnDefinition = "integer default 0")
-    private Integer masterId;
+    private Integer masterId; // ID chính
     @Column(name = "MetadataHash", columnDefinition = "integer default 0")
-    private Integer metadataHash;
+    private Integer metadataHash; // Metadata Hash
     @Column(name = "PreMetadataHash", columnDefinition = "integer default 0")
-    private Integer preMetadataHash;
+    private Integer preMetadataHash; // Metadata Hash trước
     @Column(name = "NationalFacilityCode")
-    private String nationalFacilityCode;
+    private String nationalFacilityCode; // Mã cơ sở quốc gia
     @Column(name = "MappingStoreId", columnDefinition = "integer default 0")
-    private Integer mappingStoreId;
+    private Integer mappingStoreId; // ID ánh xạ cửa hàng
     @Column(name = "TotalScore" , columnDefinition = "decimal default 0")
-    private BigDecimal totalScore;
+    private BigDecimal totalScore; // Tổng điểm
     @Column(name = "SexId", columnDefinition = "integer default 0")
-    private Integer sexId;
+    private Integer sexId; // ID giới tính
     @Column(name = "NameContacter")
-    private String nameContacter;
+    private String nameContacter; // Tên người liên hệ
     @Column(name = "PhoneContacter")
-    private String phoneContacter;
+    private String phoneContacter; // Số điện thoại người liên hệ
     @Column(name = "RefCus")
-    private String refCus;
+    private String refCus; // Tham chiếu khách hàng
     @Column(name = "CusType", columnDefinition = "boolean default 0")
-    private Boolean cusType;
+    private Boolean cusType; // Loại khách hàng
     @Column(name = "TaxCode")
-    private String taxCode;
+    private String taxCode; // Mã số thuế
     @Column(name = "MedicalIdentifier")
-    private String medicalIdentifier;
+    private String medicalIdentifier; // Mã số bảo hiểm y tế
     @Column(name = "CitizenIdentification")
-    private String citizenIdentification;
+    private String citizenIdentification; // Số CMND
     @Column(name = "HealthInsuranceNumber")
-    private String healthInsuranceNumber;
+    private String healthInsuranceNumber; // Số bảo hiểm y tế
     @Column(name = "Job")
-    private String job;
+    private String job; // Nghề nghiệp
     @Column(name = "AbilityToPay")
-    private String abilityToPay;
+    private String abilityToPay; // Khả năng thanh toán
     @Column(name = "ZaloId")
-    private String zaloId;
+    private String zaloId; // Zalo ID
 }
-

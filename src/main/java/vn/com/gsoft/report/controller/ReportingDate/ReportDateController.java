@@ -20,7 +20,7 @@ public class ReportDateController {
     @Autowired
     PhieuXuatsService service;
 
-    @PostMapping(value = PathContains.URL_REPORT, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = PathContains.URL_SEARCH_PAGE, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<BaseResponse> response(@RequestBody PhieuXuatsReq objReq) throws Exception {
         return ResponseEntity.ok(ResponseUtils.ok(service.searchReportingDate(objReq)));
