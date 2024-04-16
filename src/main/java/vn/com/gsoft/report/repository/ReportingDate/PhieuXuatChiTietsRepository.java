@@ -95,4 +95,5 @@ public interface PhieuXuatChiTietsRepository extends BaseRepository<PhieuXuatChi
           + " ORDER BY c.id desc")
   List<PhieuXuatChiTiets> searchList(@Param("param") PhieuXuatChiTietsReq param);
 
+  List<PhieuXuatChiTiets> findAllByPhieuXuatMaPhieuXuat(Integer id);
 }
