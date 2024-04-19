@@ -87,5 +87,7 @@ public class PhieuXuatsReq extends BaseRequest {
     private Long idPaymentQR;
     private Long targetManagementId;
     private Boolean IsConnectivity;
+    private Date ngayXuatTu;
+    private Date ngayXuatDen;
     private List<PhieuXuatChiTiets> chiTiets;
 }
