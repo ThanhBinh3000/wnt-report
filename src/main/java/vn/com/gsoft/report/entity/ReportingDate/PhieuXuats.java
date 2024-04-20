@@ -197,14 +197,14 @@ public class PhieuXuats extends BaseEntity {
     @Transient
     private BigDecimal revenue; // Doanh thu
 
-    @Transient
-    List<PhieuXuatChiTiets> children = new ArrayList<>();
+//    @Transient
+//    List<PhieuXuatChiTiets> children = new ArrayList<>();
 
-    public void setChildren(List<PhieuXuatChiTiets> children) {
-        this.children = children;
-        if (children != null && !children.isEmpty()) {
-            this.soLuong = children.stream().map(PhieuXuatChiTiets::getSoLuong).reduce(BigDecimal.ZERO, BigDecimal::add);
-            this.revenue = children.stream().map(PhieuXuatChiTiets::getRevenue).reduce(BigDecimal.ZERO, BigDecimal::add);
-        }
-    }
+//    public void setChildren(List<PhieuXuatChiTiets> children) {
+//        this.children = children;
+//        if (children != null && !children.isEmpty()) {
+//            this.soLuong = children.stream().map(PhieuXuatChiTiets::getSoLuong).reduce(BigDecimal.ZERO, BigDecimal::add);
+//            this.revenue = children.stream().map(PhieuXuatChiTiets::getRevenue).reduce(BigDecimal.ZERO, BigDecimal::add);
+//        }
+//    }
 }

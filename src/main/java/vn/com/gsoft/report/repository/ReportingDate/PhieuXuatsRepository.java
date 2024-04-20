@@ -139,7 +139,31 @@ public interface PhieuXuatsRepository extends BaseRepository<PhieuXuats, PhieuXu
             + " AND (:#{#param.id} IS NULL OR c.id = :#{#param.id}) "
             + " AND (:#{#param.soPhieuXuat} IS NULL OR c.soPhieuXuat = :#{#param.soPhieuXuat}) "
             + " AND (:#{#param.nhaThuocMaNhaThuoc} IS NULL OR lower(c.nhaThuocMaNhaThuoc) LIKE lower(concat('%',CONCAT(:#{#param.nhaThuocMaNhaThuoc},'%'))))"
-            + " AND (:#{#param.archivedDate} IS NULL OR c.archivedDate = :#{#param.archivedDate}) "
+            + " AND (:#{#param.ngayXuat} IS NULL OR c.ngayXuat = :#{#param.ngayXuat}) "
+            + " AND (:#{#param.ngayXuatTu} IS NULL OR c.ngayXuat >= :#{#param.ngayXuatTu}) "
+            + " AND (:#{#param.ngayXuatDen} IS NULL OR c.ngayXuat <= :#{#param.ngayXuatDen}) "
             + " ORDER BY c.id desc")
     Page<PhieuXuats> searchReportingDate(@Param("param") PhieuXuatsReq param, Pageable pageable);
+
+    //    @Query("SELECT kh.tenKhachHang, " +
+//            "       t.tenThuoc, " +
+//            "       t.maThuoc, " +
+//            "       dvt.tenDonViTinh, " +
+//            "       dtl.soLuong, " +
+//            "       dtl.giaXuat, " +
+//            "       dtl.revenue, " +
+//            "       SUM(ISNULL(dtl.soLuong, 0)) OVER() AS soLuong, " +
+//            "       hdr " +
+//            "FROM PhieuXuats hdr " +
+//            "         JOIN PhieuXuatChiTiets dtl ON hdr.soPhieuXuat = dtl.phieuXuatMaPhieuXuat " +
+//            "         JOIN KhachHangs kh ON kh.id = hdr.khachHangMaKhachHang " +
+//            "         JOIN Thuocs t ON dtl.thuocThuocId = t.id " +
+//            "         JOIN DonViTinhs dvt ON dvt.id = dtl.donViTinhMaDonViTinh " +
+//            "WHERE 1=1 "
+//            + " AND (:#{#param.nhaThuocMaNhaThuoc} IS NULL OR lower(hdr.nhaThuocMaNhaThuoc) LIKE lower(concat('%',CONCAT(:#{#param.nhaThuocMaNhaThuoc},'%'))))"
+//            + " AND (:#{#param.archivedDate} IS NULL OR hdr.archivedDate = :#{#param.archivedDate}) "
+//            + " AND (:#{#param.archivedDate} IS NULL OR hdr.archivedDate = :#{#param.archivedDate}) "
+//            + " AND (:#{#param.archivedDate} IS NULL OR hdr.archivedDate = :#{#param.archivedDate}) "
+//            + " ORDER BY hdr.id desc")
+//    Page<PhieuXuats> searchPage(@Param("param") PhieuXuatsReq param, Pageable pageable);
 }
