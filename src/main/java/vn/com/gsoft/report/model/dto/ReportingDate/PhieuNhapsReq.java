@@ -58,4 +58,7 @@ public class PhieuNhapsReq extends BaseRequest {
     private String linkFile;
     private BigDecimal discount;
     private Long targetManagementId;
+
+    private Date ngayNhapTu;
+    private Date ngayNhapDen;
 }

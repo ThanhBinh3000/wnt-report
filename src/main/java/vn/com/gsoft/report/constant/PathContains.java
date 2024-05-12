@@ -10,4 +10,5 @@ public class PathContains {
     public static final String URL_DETAIL = "/detail/{id}";
     public static final String URL_DELETE = "/delete";
     public static final String URL_REPORT = "/report";
+    public static final String URL_THU_CHI = "/getInOutcommingDetailsByDayData";
 }

@@ -131,6 +131,8 @@ public interface PhieuXuatsRepository extends BaseRepository<PhieuXuats, PhieuXu
             + " AND (:#{#param.resultZNS} IS NULL OR lower(c.resultZNS) LIKE lower(concat('%',CONCAT(:#{#param.resultZNS},'%'))))"
             + " AND (:#{#param.idPaymentQR} IS NULL OR c.idPaymentQR = :#{#param.idPaymentQR}) "
             + " AND (:#{#param.targetManagementId} IS NULL OR c.targetManagementId = :#{#param.targetManagementId}) "
+            + " AND (:#{#param.ngayXuatTu} IS NULL OR c.ngayXuat >= :#{#param.ngayXuatTu}) "
+            + " AND (:#{#param.ngayXuatDen} IS NULL OR c.ngayXuat <= :#{#param.ngayXuatDen}) "
             + " ORDER BY c.id desc")
     List<PhieuXuats> searchList(@Param("param") PhieuXuatsReq param);
 
