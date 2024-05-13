@@ -11,4 +11,5 @@ public class PathContains {
     public static final String URL_DELETE = "/delete";
     public static final String URL_REPORT = "/report";
     public static final String URL_THU_CHI = "/getInOutcommingDetailsByDayData";
+    public static final String URL_DOANH_THU_DAILY = "/getRevenueDrugSynthesis";
 }

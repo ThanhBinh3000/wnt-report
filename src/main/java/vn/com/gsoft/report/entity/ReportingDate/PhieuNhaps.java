@@ -38,7 +38,7 @@ public class PhieuNhaps extends BaseEntity {
     @Column(name = "NhaThuoc_MaNhaThuoc")
     private String nhaThuocMaNhaThuoc; // Mã Nhà Thuốc
     @Column(name = "LoaiXuatNhap_MaLoaiXuatNhap")
-    private Integer loaiXuatNhapMaLoaiXuatNhap; // Mã Loại Xuất Nhập
+    private Long loaiXuatNhapMaLoaiXuatNhap; // Mã Loại Xuất Nhập
     @Column(name = "NhaCungCap_MaNhaCungCap")
     private Long nhaCungCapMaNhaCungCap; // Mã Nhà Cung Cấp
     @Column(name = "KhachHang_MaKhachHang")

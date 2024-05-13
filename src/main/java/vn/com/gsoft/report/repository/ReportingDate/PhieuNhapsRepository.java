@@ -61,13 +61,12 @@ public interface PhieuNhapsRepository extends BaseRepository<PhieuNhaps, PhieuNh
 
 
     @Query("SELECT c FROM PhieuNhaps c " +
-            "WHERE 1=1 "
+            " WHERE c.nhaThuocMaNhaThuoc = :#{#param.nhaThuocMaNhaThuoc}"
             + " AND (:#{#param.id} IS NULL OR c.id = :#{#param.id}) "
             + " AND (:#{#param.soPhieuNhap} IS NULL OR c.soPhieuNhap = :#{#param.soPhieuNhap}) "
             + " AND (:#{#param.dienGiai} IS NULL OR lower(c.dienGiai) LIKE lower(concat('%',CONCAT(:#{#param.dienGiai},'%'))))"
             + " AND (:#{#param.tongTien} IS NULL OR c.tongTien = :#{#param.tongTien}) "
             + " AND (:#{#param.daTra} IS NULL OR c.daTra = :#{#param.daTra}) "
-            + " AND (:#{#param.nhaThuocMaNhaThuoc} IS NULL OR lower(c.nhaThuocMaNhaThuoc) LIKE lower(concat('%',CONCAT(:#{#param.nhaThuocMaNhaThuoc},'%'))))"
             + " AND (:#{#param.loaiXuatNhapMaLoaiXuatNhap} IS NULL OR c.loaiXuatNhapMaLoaiXuatNhap = :#{#param.loaiXuatNhapMaLoaiXuatNhap}) "
             + " AND (:#{#param.nhaCungCapMaNhaCungCap} IS NULL OR c.nhaCungCapMaNhaCungCap = :#{#param.nhaCungCapMaNhaCungCap}) "
             + " AND (:#{#param.khachHangMaKhachHang} IS NULL OR c.khachHangMaKhachHang = :#{#param.khachHangMaKhachHang}) "
@@ -101,6 +100,8 @@ public interface PhieuNhapsRepository extends BaseRepository<PhieuNhaps, PhieuNh
             + " AND (:#{#param.pickUpOrderId} IS NULL OR c.pickUpOrderId = :#{#param.pickUpOrderId}) "
             + " AND (:#{#param.discount} IS NULL OR c.discount = :#{#param.discount}) "
             + " AND (:#{#param.targetManagementId} IS NULL OR c.targetManagementId = :#{#param.targetManagementId}) "
+            + " AND (:#{#param.ngayNhapTu} IS NULL OR c.ngayNhap >= :#{#param.ngayNhapTu}) "
+            + " AND (:#{#param.ngayNhapDen} IS NULL OR c.ngayNhap <= :#{#param.ngayNhapDen}) "
             + " ORDER BY c.id desc"
     )
     List<PhieuNhaps> searchList(@Param("param") PhieuNhapsReq param);

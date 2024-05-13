@@ -24,7 +24,14 @@ public class ReportController {
 
     @PostMapping(value = PathContains.URL_THU_CHI, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<BaseResponse> response(@RequestBody ReportReq objReq) throws Exception {
-        return ResponseEntity.ok(ResponseUtils.ok(service.InOutCommingDetailsByDayResponse(objReq)));
+    public ResponseEntity<BaseResponse> inOutCommingDetailsByDayResponse(@RequestBody ReportReq objReq) throws Exception {
+        return ResponseEntity.ok(ResponseUtils.ok(service.inOutCommingDetailsByDayResponse(objReq)));
+    }
+
+
+    @PostMapping(value = PathContains.URL_DOANH_THU_DAILY, produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<BaseResponse> getRevenueDrugSynthesis(@RequestBody ReportReq objReq) throws Exception {
+        return ResponseEntity.ok(ResponseUtils.ok(service.getRevenueDrugSynthesis(objReq)));
     }
 }

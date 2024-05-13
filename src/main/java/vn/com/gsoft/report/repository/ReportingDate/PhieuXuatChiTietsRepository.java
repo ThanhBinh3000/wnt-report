@@ -1,5 +1,6 @@
 package vn.com.gsoft.report.repository.ReportingDate;
 
+import jakarta.persistence.Tuple;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
@@ -94,6 +95,20 @@ public interface PhieuXuatChiTietsRepository extends BaseRepository<PhieuXuatChi
           + " AND (:#{#param.outOwnerPriceChild} IS NULL OR c.outOwnerPriceChild = :#{#param.outOwnerPriceChild}) "
           + " ORDER BY c.id desc")
   List<PhieuXuatChiTiets> searchList(@Param("param") PhieuXuatChiTietsReq param);
+
+  @Query("SELECT di " +
+          " FROM PhieuXuatChiTiets di "+
+          " JOIN PhieuXuats d on di.phieuXuatMaPhieuXuat = d.id "+
+          " JOIN Thuocs dr on di.thuocThuocId = dr.id "+
+          " JOIN DonViTinhs u on di.donViTinhMaDonViTinh = u.id "+
+          " WHERE d.nhaThuocMaNhaThuoc = :#{#param.nhaThuocMaNhaThuoc} "
+          + " AND (:#{#param.listIdPhieuXuat.size() }  = 0 OR d.id IN (:#{#param.listIdPhieuXuat})) "
+          + " AND (:#{#param.loaiNhapXuat} IS NULL OR d.maLoaiXuatNhap = :#{#param.loaiNhapXuat}) "
+          + " AND (:#{#param.recordStatusId} IS NULL OR d.recordStatusId = :#{#param.recordStatusId}) "
+          + " AND (:#{#param.fromDateNgayXuat} IS NULL OR d.ngayXuat >= :#{#param.fromDateNgayXuat}) "
+          + " AND (:#{#param.toDateNgayXuat} IS NULL OR d.ngayXuat <= :#{#param.toDateNgayXuat}) "
+          + " ORDER BY d.ngayXuat desc")
+  List<PhieuXuatChiTiets> searchListCustom(@Param("param") PhieuXuatChiTietsReq param);
 
   List<PhieuXuatChiTiets> findAllByPhieuXuatMaPhieuXuat(Integer id);
 }

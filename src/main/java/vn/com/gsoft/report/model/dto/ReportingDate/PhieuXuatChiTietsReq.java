@@ -5,6 +5,7 @@ import vn.com.gsoft.report.model.system.BaseRequest;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
 
 @Data
 public class PhieuXuatChiTietsReq extends BaseRequest {
@@ -51,4 +52,12 @@ public class PhieuXuatChiTietsReq extends BaseRequest {
     private BigDecimal refPrice;
     private String usage;
     private BigDecimal outOwnerPriceChild;
+
+    private Date fromDateNgayXuat;
+
+    private Date toDateNgayXuat;
+
+    private String loaiNhapXuat;
+
+    private List<Long> listIdPhieuXuat;
 }

@@ -6,18 +6,20 @@ import java.math.BigDecimal;
 
 @Data
 public class InOutCommingDetailsByDayModel {
-    public int Order ;
-    public String NoteType ;
-    public BigDecimal OutCommingCashAmount ;
-    public BigDecimal OutCommingTransferAmount ;
-    public BigDecimal InCommingCashAmount ;
-    public BigDecimal InCommingTransferAmount ;
-    public BigDecimal SellTotalAmount ;
-    public BigDecimal BuyTotalAmount ;
-    public int TotalCustomerDebt ;
-    public int TotalSupplierDebt ;
-    public int TotalCustomerReturn ;
-    public int TotalSupplierReturn ;
+    public int order ;
+    public String noteType ;
+    public BigDecimal outCommingCashAmount ;
+    public BigDecimal outCommingTransferAmount ;
+    public BigDecimal inCommingCashAmount ;
+    public BigDecimal inCommingTransferAmount ;
+    public BigDecimal sellTotalAmount ;
+    public BigDecimal buyTotalAmount ;
+    public int totalCustomerDebt ;
+    public int totalSupplierDebt ;
+    public int totalCustomerReturn ;
+    public int totalSupplierReturn ;
+    public int totalOutReturnCustomer ;
+    public int totalInReturnSupplier ;
     public String Description ;
     public String Link ;
 

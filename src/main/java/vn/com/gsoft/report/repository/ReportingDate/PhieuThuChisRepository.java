@@ -27,12 +27,14 @@ public interface PhieuThuChisRepository extends BaseRepository<PhieuThuChis, Phi
 
 
     @Query("SELECT c FROM PhieuThuChis c " +
-            "WHERE 1=1 "
+            " WHERE c.nhaThuocMaNhaThuoc = :#{#param.nhaThuocMaNhaThuoc}"
             + " AND (:#{#param.id} IS NULL OR c.id = :#{#param.id}) "
             + " AND (:#{#param.nhaThuocMaNhaThuoc} IS NULL OR lower(c.nhaThuocMaNhaThuoc) LIKE lower(concat('%',CONCAT(:#{#param.nhaThuocMaNhaThuoc},'%'))))"
             + " AND (:#{#param.recordStatusId} IS NULL OR c.recordStatusId = :#{#param.recordStatusId}) "
             + " AND (:#{#param.archivedId} IS NULL OR c.archivedId = :#{#param.archivedId}) "
             + " AND (:#{#param.storeId} IS NULL OR c.storeId = :#{#param.storeId}) "
+            + " AND (:#{#param.fromDate} IS NULL OR c.ngayTao >= :#{#param.fromDate}) "
+            + " AND (:#{#param.toDate} IS NULL OR c.ngayTao <= :#{#param.toDate}) "
             + " ORDER BY c.id desc"
     )
     List<PhieuThuChis> searchList(@Param("param") PhieuThuChisReq param);

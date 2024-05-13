@@ -28,7 +28,7 @@ public class PhieuThuChis extends BaseEntity {
     @Column(name = "NgayTao")
     private Date ngayTao; // Ngày tạo
     @Column(name = "LoaiPhieu")
-    private Integer loaiPhieu; // Loại phiếu
+    private Long loaiPhieu; // Loại phiếu
     @Column(name = "NhaThuoc_MaNhaThuoc")
     private String nhaThuocMaNhaThuoc; // Mã nhà thuốc
     @Column(name = "KhachHang_MaKhachHang")
