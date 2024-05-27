@@ -5,10 +5,12 @@ import vn.com.gsoft.report.model.system.BaseRequest;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
 
 @Data
 public class PhieuNhapChiTietsReq  extends BaseRequest {
-    private Integer phieuNhapMaPhieuNhap;
+    private Long phieuNhapMaPhieuNhap;
+    private List<Long> phieuNhapMaPhieuNhaps;
     private String nhaThuocMaNhaThuoc;
     private Long thuocThuocId;
     private Integer donViTinhMaDonViTinh;

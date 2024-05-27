@@ -9,7 +9,7 @@ public class ENoteType {
     /// <summary>
     /// Delivery
     /// </summary>
-    public static final Integer Delivery = 2;
+    public static final Long Delivery = 2L;
     public static final String DeliveryStr = "2";
 
     /// <summary>

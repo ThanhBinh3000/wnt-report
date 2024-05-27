@@ -1,12 +1,11 @@
-package vn.com.gsoft.report.repository.ReportingDate;
+package vn.com.gsoft.report.repository;
 
-import jakarta.persistence.Tuple;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-import vn.com.gsoft.report.entity.ReportingDate.PhieuXuatChiTiets;
+import vn.com.gsoft.report.entity.PhieuXuatChiTiets;
 import vn.com.gsoft.report.model.dto.ReportingDate.PhieuXuatChiTietsReq;
 import vn.com.gsoft.report.repository.BaseRepository;
 
@@ -110,5 +109,5 @@ public interface PhieuXuatChiTietsRepository extends BaseRepository<PhieuXuatChi
           + " ORDER BY d.ngayXuat desc")
   List<PhieuXuatChiTiets> searchListCustom(@Param("param") PhieuXuatChiTietsReq param);
 
-  List<PhieuXuatChiTiets> findAllByPhieuXuatMaPhieuXuat(Integer id);
+  List<PhieuXuatChiTiets> findAllByPhieuXuatMaPhieuXuat(Long id);
 }

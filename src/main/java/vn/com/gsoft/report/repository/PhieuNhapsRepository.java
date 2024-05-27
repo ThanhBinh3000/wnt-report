@@ -1,11 +1,11 @@
-package vn.com.gsoft.report.repository.ReportingDate;
+package vn.com.gsoft.report.repository;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-import vn.com.gsoft.report.entity.ReportingDate.PhieuNhaps;
+import vn.com.gsoft.report.entity.PhieuNhaps;
 import vn.com.gsoft.report.model.dto.ReportingDate.PhieuNhapsReq;
 import vn.com.gsoft.report.repository.BaseRepository;
 
@@ -63,6 +63,7 @@ public interface PhieuNhapsRepository extends BaseRepository<PhieuNhaps, PhieuNh
     @Query("SELECT c FROM PhieuNhaps c " +
             " WHERE c.nhaThuocMaNhaThuoc = :#{#param.nhaThuocMaNhaThuoc}"
             + " AND (:#{#param.id} IS NULL OR c.id = :#{#param.id}) "
+            + " AND (:#{#param.ids} IS NULL OR c.id IN :#{#param.ids}) "
             + " AND (:#{#param.soPhieuNhap} IS NULL OR c.soPhieuNhap = :#{#param.soPhieuNhap}) "
             + " AND (:#{#param.dienGiai} IS NULL OR lower(c.dienGiai) LIKE lower(concat('%',CONCAT(:#{#param.dienGiai},'%'))))"
             + " AND (:#{#param.tongTien} IS NULL OR c.tongTien = :#{#param.tongTien}) "

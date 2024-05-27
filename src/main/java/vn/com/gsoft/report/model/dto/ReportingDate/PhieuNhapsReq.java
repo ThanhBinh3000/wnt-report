@@ -16,7 +16,7 @@ public class PhieuNhapsReq extends BaseRequest {
     private BigDecimal tongTien;
     private BigDecimal daTra;
     private String nhaThuocMaNhaThuoc;
-    private Integer loaiXuatNhapMaLoaiXuatNhap;
+    private Long loaiXuatNhapMaLoaiXuatNhap;
     private Long nhaCungCapMaNhaCungCap;
     private Long khachHangMaKhachHang;
     private Boolean active;

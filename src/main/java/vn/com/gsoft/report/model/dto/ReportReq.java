@@ -3,6 +3,7 @@ package vn.com.gsoft.report.model.dto;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import vn.com.gsoft.report.model.system.BaseRequest;
+import vn.com.gsoft.report.model.system.PaggingReq;
 
 import java.math.BigDecimal;
 import java.util.Date;
@@ -18,4 +19,13 @@ public class ReportReq extends BaseRequest {
     private String drugStoreId;
 
     private List<Long> listIdPhieuXuat;
+
+    private Long reportByTypeId;
+
+    private Long loaiXuatNhapMaLoaiXuatNhap;
+
+    private PaggingReq paggingReq;
+
+    private Long noteTypeId;
+
 }

@@ -1,6 +1,7 @@
-package vn.com.gsoft.report.entity.ReportingDate;
+package vn.com.gsoft.report.entity;
 
 import jakarta.persistence.*;
+import jakarta.persistence.Entity;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -60,7 +61,7 @@ public class PhieuThuChis extends BaseEntity {
     @Column(name = "MaCoSo")
     private String maCoSo; // Mã cơ sở
     @Column(name = "NhanVienId")
-    private Integer nhanVienId; // ID nhân viên
+    private Long nhanVienId; // ID nhân viên
     @Column(name = "RewardProgramId")
     private Integer rewardProgramId; // ID chương trình khuyến mãi
     @Column(name = "FromDate")

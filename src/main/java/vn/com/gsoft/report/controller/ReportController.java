@@ -28,10 +28,35 @@ public class ReportController {
         return ResponseEntity.ok(ResponseUtils.ok(service.inOutCommingDetailsByDayResponse(objReq)));
     }
 
+//    @PostMapping(value = PathContains.URL_BAO_CAO_THEO_NHAN_VIEN, produces = MediaType.APPLICATION_JSON_VALUE)
+//    @ResponseStatus(HttpStatus.OK)
+//    public ResponseEntity<BaseResponse> getReportByUser(@RequestBody ReportReq objReq) throws Exception {
+//        return ResponseEntity.ok(ResponseUtils.ok(service.inOutCommingDetailsByDayResponse(objReq)));
+//    }
+//
+//
+//    @PostMapping(value = PathContains.URL_DOANH_THU_DAILY, produces = MediaType.APPLICATION_JSON_VALUE)
+//    @ResponseStatus(HttpStatus.OK)
+//    public ResponseEntity<BaseResponse> getRevenueDrugSynthesis(@RequestBody ReportReq objReq) throws Exception {
+//        return ResponseEntity.ok(ResponseUtils.ok(service.getRevenueDrugSynthesis(objReq)));
+//    }
 
-    @PostMapping(value = PathContains.URL_DOANH_THU_DAILY, produces = MediaType.APPLICATION_JSON_VALUE)
+//    @PostMapping(value = PathContains.URL_REPORT_BY_DATA, produces = MediaType.APPLICATION_JSON_VALUE)
+//    @ResponseStatus(HttpStatus.OK)
+//    public ResponseEntity<BaseResponse> getReportByData(@RequestBody ReportReq objReq) throws Exception {
+////        return ResponseEntity.ok(ResponseUtils.ok(service.getReportByData(objReq)));
+//    }
+
+    @PostMapping(value = PathContains.URL_BAO_CAO_TONG_HOP_THU_CHI, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<BaseResponse> getRevenueDrugSynthesis(@RequestBody ReportReq objReq) throws Exception {
-        return ResponseEntity.ok(ResponseUtils.ok(service.getRevenueDrugSynthesis(objReq)));
+    public ResponseEntity<BaseResponse> getInOutCommingNoteReportData(@RequestBody ReportReq objReq) throws Exception {
+        return ResponseEntity.ok(ResponseUtils.ok(service.getInOutCommingNoteReportData(objReq)));
     }
+
+    @PostMapping(value = PathContains.URL_BAO_CAO_KIEM_KE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<BaseResponse> getInventoryWarehouseData(@RequestBody ReportReq objReq) throws Exception {
+        return ResponseEntity.ok(ResponseUtils.ok(service.getInventoryWarehouseData(objReq)));
+    }
+
 }

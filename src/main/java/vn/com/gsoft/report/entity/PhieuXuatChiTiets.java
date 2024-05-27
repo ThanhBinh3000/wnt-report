@@ -1,6 +1,7 @@
-package vn.com.gsoft.report.entity.ReportingDate;
+package vn.com.gsoft.report.entity;
 
 import jakarta.persistence.*;
+import jakarta.persistence.Entity;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -22,7 +23,7 @@ public class PhieuXuatChiTiets extends BaseEntity {
     @GeneratedValue(strategy=GenerationType.IDENTITY)
     private Long id;
     @Column(name = "PhieuXuat_MaPhieuXuat")
-    private Integer phieuXuatMaPhieuXuat; // Mã phiếu xuất
+    private Long phieuXuatMaPhieuXuat; // Mã phiếu xuất
     @Column(name = "NhaThuoc_MaNhaThuoc")
     private String nhaThuocMaNhaThuoc; // Mã nhà thuốc
     @Column(name = "Thuoc_ThuocId")
@@ -107,4 +108,7 @@ public class PhieuXuatChiTiets extends BaseEntity {
     private String usage; // Cách dùng
     @Column(name = "OutOwnerPriceChild")
     private BigDecimal outOwnerPriceChild; // Giá ngoại vi
+
+    @Transient
+    private BigDecimal totalAmount;
 }

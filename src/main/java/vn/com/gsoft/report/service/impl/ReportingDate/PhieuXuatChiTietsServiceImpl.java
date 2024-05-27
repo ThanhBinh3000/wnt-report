@@ -3,9 +3,9 @@ package vn.com.gsoft.report.service.impl.ReportingDate;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import vn.com.gsoft.report.entity.ReportingDate.PhieuXuatChiTiets;
+import vn.com.gsoft.report.entity.PhieuXuatChiTiets;
 import vn.com.gsoft.report.model.dto.ReportingDate.PhieuXuatChiTietsReq;
-import vn.com.gsoft.report.repository.ReportingDate.PhieuXuatChiTietsRepository;
+import vn.com.gsoft.report.repository.PhieuXuatChiTietsRepository;
 import vn.com.gsoft.report.service.ReportingDate.PhieuXuatChiTietsService;
 import vn.com.gsoft.report.service.impl.BaseServiceImpl;
 

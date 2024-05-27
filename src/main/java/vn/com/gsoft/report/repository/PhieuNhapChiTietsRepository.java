@@ -1,11 +1,11 @@
-package vn.com.gsoft.report.repository.ReportingDate;
+package vn.com.gsoft.report.repository;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-import vn.com.gsoft.report.entity.ReportingDate.PhieuNhapChiTiets;
+import vn.com.gsoft.report.entity.PhieuNhapChiTiets;
 import vn.com.gsoft.report.model.dto.ReportingDate.PhieuNhapChiTietsReq;
 import vn.com.gsoft.report.repository.BaseRepository;
 
@@ -64,6 +64,7 @@ public interface PhieuNhapChiTietsRepository extends BaseRepository<PhieuNhapChi
           "WHERE 1=1 "
           + " AND (:#{#param.id} IS NULL OR c.id = :#{#param.id}) "
           + " AND (:#{#param.phieuNhapMaPhieuNhap} IS NULL OR c.phieuNhapMaPhieuNhap = :#{#param.phieuNhapMaPhieuNhap}) "
+          + " AND (:#{#param.phieuNhapMaPhieuNhaps} IS NULL OR c.phieuNhapMaPhieuNhap IN :#{#param.phieuNhapMaPhieuNhaps}) "
           + " AND (:#{#param.nhaThuocMaNhaThuoc} IS NULL OR lower(c.nhaThuocMaNhaThuoc) LIKE lower(concat('%',CONCAT(:#{#param.nhaThuocMaNhaThuoc},'%'))))"
           + " AND (:#{#param.thuocThuocId} IS NULL OR c.thuocThuocId = :#{#param.thuocThuocId}) "
           + " AND (:#{#param.donViTinhMaDonViTinh} IS NULL OR c.donViTinhMaDonViTinh = :#{#param.donViTinhMaDonViTinh}) "
@@ -106,4 +107,5 @@ public interface PhieuNhapChiTietsRepository extends BaseRepository<PhieuNhapChi
   List<PhieuNhapChiTiets> searchList(@Param("param") PhieuNhapChiTietsReq param);
 
   Optional<PhieuNhapChiTiets> findByThuocThuocId(Long idThuoc);
+  List<PhieuNhapChiTiets> findAllByPhieuNhapMaPhieuNhap(Long phieuNhapMaPhieuNhap);
 }

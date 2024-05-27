@@ -2,20 +2,19 @@ package vn.com.gsoft.report.service.impl;
 
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import vn.com.gsoft.report.constant.ENoteType;
 import vn.com.gsoft.report.constant.InOutCommingType;
 import vn.com.gsoft.report.constant.RecordStatusContains;
-import vn.com.gsoft.report.entity.ReportingDate.*;
+import vn.com.gsoft.report.entity.*;
 import vn.com.gsoft.report.model.dto.*;
 import vn.com.gsoft.report.model.dto.ReportingDate.*;
+import vn.com.gsoft.report.entity.NhanVienNhaThuocs;
 import vn.com.gsoft.report.model.system.Profile;
-import vn.com.gsoft.report.repository.BaseRepository;
-import vn.com.gsoft.report.repository.ReportingDate.*;
-import vn.com.gsoft.report.util.system.DataUtils;
+import vn.com.gsoft.report.repository.*;
 
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
@@ -25,6 +24,10 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 public class ReportServiceImpl {
+    @Autowired
+    private DonViTinhsRepository donViTinhsRepository;
+    @Autowired
+    private ThuocsRepository thuocsRepository;
 
     @Autowired
     private PhieuXuatsRepository phieuXuatsRepository;
@@ -43,6 +46,18 @@ public class ReportServiceImpl {
     
     @Autowired
     private ReceiptDrugPriceRefRepository receiptDrugPriceRefRepository;
+
+    @Autowired
+    private NhaThuocsRepository nhaThuocsRepository;
+
+    @Autowired
+    private NhanVienNhaThuocsRepository nhanVienNhaThuocsRepository;
+
+    @Autowired
+    private UserProfileRepository userProfileRepository;
+
+    @Autowired
+    private PhieuKiemKesRepository phieuKiemKesRepository;
 
 
     public Profile getLoggedUser() throws Exception {
@@ -540,6 +555,75 @@ public class ReportServiceImpl {
     }
 
 
+    public InOutCommingDetailsByDayResponse getReportByUser(ReportReq req) throws Exception {
+        Profile userInfo = this.getLoggedUser();
+        if (userInfo == null){
+            throw new Exception("Bad request.");
+        }
+        InOutCommingDetailsByDayResponse result = new InOutCommingDetailsByDayResponse();
+        List<InOutCommingDetailsByDayModel> lstReportModel = new ArrayList<>();
+        List<PhieuXuats> phieuXuats = getValidDeliveryNotes(req);
+        DecimalFormat decimalFormat = new DecimalFormat("#,##0");
+
+        //bán hàng
+        List<PhieuXuats> banHang = phieuXuats.stream().filter(item -> Objects.equals(item.getMaLoaiXuatNhap(), ENoteType.Delivery)).collect(Collectors.toList());
+        BigDecimal sellCashAmount = banHang.stream()
+                .filter(row -> row.getPaymentTypeId() == 0 && row.getDaTra() != null) // Ví dụ lọc dựa trên một điều kiện (cột 1 lớn hơn 2)
+                .map(PhieuXuats::getDaTra) // Chọn cột để tính tổng (ví dụ là cột 2)
+                .reduce(BigDecimal.valueOf(0), BigDecimal::add);
+        BigDecimal sellTransferAmount = banHang.stream()
+                .filter(row -> row.getPaymentTypeId() == 1 && row.getDaTra() != null) // Ví dụ lọc dựa trên một điều kiện (cột 1 lớn hơn 2)
+                .map(PhieuXuats::getDaTra) // Chọn cột để tính tổng (ví dụ là cột 2)
+                .reduce(BigDecimal.valueOf(0), BigDecimal::add);
+        BigDecimal sellTotalAmount = banHang.stream()
+                .map(PhieuXuats::getTongTien) // Chọn cột để tính tổng (ví dụ là cột 2)
+                .reduce(BigDecimal.valueOf(0), BigDecimal::add);
+        InOutCommingDetailsByDayModel reportSellModel = new InOutCommingDetailsByDayModel();
+        reportSellModel.setOrder(1);
+        reportSellModel.setNoteType("Bán hàng");
+        reportSellModel.setInCommingCashAmount(sellCashAmount);
+        reportSellModel.setInCommingTransferAmount(sellTransferAmount);
+        reportSellModel.setSellTotalAmount(sellTotalAmount);
+        reportSellModel.setDescription(String.format("Tổng doanh số: %s",decimalFormat.format(sellTotalAmount)));
+        reportSellModel.Link = "/NoteManagement/NotesListing?##noteTypeId=2";
+        lstReportModel.add(reportSellModel);
+
+
+        //tổng
+        var summaryModel = new InOutCommingDetailsByDayModel();
+        summaryModel.setOrder(12);
+        summaryModel.setNoteType("Tổng");
+        BigDecimal inCommingCashAmountTotal = lstReportModel.stream()
+                .filter(row -> row.getInCommingCashAmount() != null) // Ví dụ lọc dựa trên một điều kiện (cột 1 lớn hơn 2)
+                .map(InOutCommingDetailsByDayModel::getInCommingCashAmount) // Chọn cột để tính tổng (ví dụ là cột 2)
+                .reduce(BigDecimal.valueOf(0), BigDecimal::add);
+        BigDecimal inCommingTransferAmountTotal = lstReportModel.stream()
+                .filter(row -> row.getInCommingTransferAmount() != null) // Ví dụ lọc dựa trên một điều kiện (cột 1 lớn hơn 2)
+                .map(InOutCommingDetailsByDayModel::getInCommingTransferAmount) // Chọn cột để tính tổng (ví dụ là cột 2)
+                .reduce(BigDecimal.valueOf(0), BigDecimal::add);
+        BigDecimal outCommingCashAmountTotal = lstReportModel.stream()
+                .filter(row -> row.getOutCommingCashAmount() != null) // Ví dụ lọc dựa trên một điều kiện (cột 1 lớn hơn 2)
+                .map(InOutCommingDetailsByDayModel::getOutCommingCashAmount) // Chọn cột để tính tổng (ví dụ là cột 2)
+                .reduce(BigDecimal.valueOf(0), BigDecimal::add);
+        BigDecimal outCommingTransferAmountTotal = lstReportModel.stream()
+                .filter(row -> row.getOutCommingTransferAmount() != null) // Ví dụ lọc dựa trên một điều kiện (cột 1 lớn hơn 2)
+                .map(InOutCommingDetailsByDayModel::getOutCommingTransferAmount) // Chọn cột để tính tổng (ví dụ là cột 2)
+                .reduce(BigDecimal.valueOf(0), BigDecimal::add);
+        summaryModel.setInCommingCashAmount(inCommingCashAmountTotal);
+        summaryModel.setInCommingTransferAmount(inCommingTransferAmountTotal);
+        summaryModel.setOutCommingCashAmount(outCommingCashAmountTotal);
+        summaryModel.setOutCommingTransferAmount(outCommingTransferAmountTotal);
+        lstReportModel.add(summaryModel);
+        result.setInCommingTotalAmount(inCommingCashAmountTotal.add(inCommingTransferAmountTotal));
+        result.setOutCommingTotalAmount(outCommingCashAmountTotal.add(outCommingTransferAmountTotal));
+        result.setDebtTotalAmount(banHang.stream()
+                .map(x -> x.getTongTien().subtract(x.getDaTra().max(x.getTongTien())).subtract(x.getDiscount()).subtract(x.getPaymentScoreAmount()))
+                .reduce(BigDecimal.ZERO, BigDecimal::add));
+        result.setListDetail(lstReportModel);
+        return result;
+    }
+
+
     private List<PhieuXuats> getValidDeliveryNotes(ReportReq req){
         PhieuXuatsReq phieuXuatsReq = new PhieuXuatsReq();
         phieuXuatsReq.setNhaThuocMaNhaThuoc(req.getDrugStoreId());
@@ -556,6 +640,7 @@ public class ReportServiceImpl {
         phieuNhapReq.setRecordStatusId(RecordStatusContains.ACTIVE);
         phieuNhapReq.setNgayNhapTu(req.getReportFromDate());
         phieuNhapReq.setNgayNhapDen(req.getReportToDate());
+        phieuNhapReq.setLoaiXuatNhapMaLoaiXuatNhap(req.getLoaiXuatNhapMaLoaiXuatNhap());
         List<PhieuNhaps> phieuNhaps = phieuNhapsRepository.searchList(phieuNhapReq);
         return phieuNhaps.stream().filter(row -> row.getPaymentTypeId() != null && row.getLoaiXuatNhapMaLoaiXuatNhap() != null).collect(Collectors.toList());
     };
@@ -676,7 +761,7 @@ public class ReportServiceImpl {
     }
 
 
-    private List <PhieuNhapChiTiets> getValidReceiptNoteItems(ReportReq req){
+    private List<PhieuNhapChiTiets> getValidReceiptNoteItems(ReportReq req){
         PhieuNhapChiTietsReq reqPx = new PhieuNhapChiTietsReq();
 //        reqPx.setFromDateNgayXuat(req.getReportFromDate());
 //        reqPx.setFromDateNgayXuat(req.getReportToDate());
@@ -1108,5 +1193,519 @@ public class ReportServiceImpl {
 //        result.DebtTotalAmount = dNote.Any() ? (double)dNote.Sum(x => x.TongTien - (x.DaTra > x.TongTien ? x.TongTien : x.DaTra) - x.Discount - x.PaymentScoreAmount) : 0;
 //        result.PagingResultModel = new PagingResultModel<InOutCommingDetailsByDayModel>(lstReportModel, totalCount);
 //        return result;
+
+
+//    public ReportByResponse getReportByData(ReportReq req){
+//        if (Objects.equals(req.getReportByTypeId(), ReportByType.ByStaff)){
+//            return getReportByStaff(req);
+//        }
+//        if (Objects.equals(req.getReportByTypeId(), ReportByType.ByGoodsByStaff) || Objects.equals(req.getReportByTypeId(), ReportByType.ByGoodsByDoctor)){
+//            return getReportByGoods(req);
+//        }
+//        if (Objects.equals(req.getReportByTypeId(), ReportByType.BySupplyer)){
+//            return GetReportBySupplier(req);
+//        }
+//        if (Objects.equals(req.getReportByTypeId(), ReportByType.ByStaffDate)){
+////            return GetDataByStaff(drugStoreCode, filter);
+//        }
+//        if (Objects.equals(req.getReportByTypeId(), ReportByType.ByCustomer)){
+////            return GetReportByDataCustomer(drugStoreCode, filter);
+//        }
+//        if (Objects.equals(req.getReportByTypeId(), ReportByType.ByGoodDoctor)){
+////            return GetReportDoctorByGoods(drugStoreCode, filter);
+//        }
+//        return null;
+//    }
+//
+//    private ReportByResponse getReportByStaff(ReportReq req) {
+////        ReportByResponse result = new ReportByResponse();
+////        req.setLoaiXuatNhapMaLoaiXuatNhap(ENoteType.ReturnFromCustomer);
+////        List<PhieuNhaps> receiptNotesFromCustomerQable = getValidReceiptNotes(req).stream().filter(row -> row.getKhachHangMaKhachHang() != null && row.getKhachHangMaKhachHang() > 0L).toList();
+////        List<PhieuNhapChiTiets> deliveryItemCands = getValidReceiptNoteItems(req);
+////        List<PhieuNhapChiTiets> deliveryItems = deliveryItemCands;
+////        List<Long> noteIds = deliveryItems.stream().map(PhieuNhapChiTiets::getPhieuNhapMaPhieuNhap).toList();
+////        if (!req.filterByAll && req.hasStaffIds)
+////        {
+////            Map<Long, Double> revenReturnCus = getValidReceiptNoteItems(req).stream().collect(
+////                    Collectors.groupingBy(PhieuNhapChiTiets::getPhieuNhapMaPhieuNhap,
+////                            Collectors.summingDouble(item -> item.getRetailQuantity().multiply(item.getRetailPrice().subtract(item.getRefPrice())).doubleValue())));
+//////            deliveryItems.addAll(noteItemsReturnFromCustomers.ToArray());
+//////            deliveryItemsGroups = deliveryItems.GroupBy(i => new ReportBaseNoteItem()
+//////            { OwnerId = i.StaffId.Value, NoteId = i.NoteId }).DistinctBy(i => i.Key).ToList();
+////        }
+////        else
+////        {
+////            Map<Long, Double> revenReturnCus = getValidReceiptNoteItems(req).stream().collect(
+////                    Collectors.groupingBy(PhieuNhapChiTiets::getPhieuNhapMaPhieuNhap,
+////                            Collectors.summingDouble(item -> item.getRetailQuantity().multiply(item.getRetailPrice().subtract(item.getRefPrice())).doubleValue())));
+////            returnedNotesFromCustomers = receiptNotesFromCustomerQable.Select(i => new ReportDeliveryItem()
+////            {
+////                //PaidAmount = (double)(i.DaTra + i.DebtPaymentAmount),
+////                PaidAmount = (double)i.DaTra,
+////                TotalAmount = (double)i.TongTien,
+////                OwnerId = i.CreatedBy_UserId.Value,
+////                ReturnedItem = true
+////            }).ToList();
+////            deliveryItemsGroupsByOwners = deliveryItems.GroupBy(i => i.StaffId).ToList();
+////            deliveryNotes = deliveryNotesQable.Where(i => noteIds.Contains(i.MaPhieuXuat))
+////                            .Select(i => new ReportDeliveryItem()
+////        {
+////            //PaidAmount = (double)(i.DaTra + i.DebtPaymentAmount),
+////            PaidAmount = i.DaTra == i.TongTien && (i.Discount > 0 || i.PaymentScore > 0) ? (double)(i.DaTra - i.Discount - i.PaymentScoreAmount) : (double)i.DaTra,
+////            TotalAmount = (double)i.TongTien,
+////            Discount = (double)i.Discount,
+////            PaymentScore = (double)i.PaymentScoreAmount,
+////            OwnerId = i.CreatedBy_UserId.Value,
+////            Payment = i.PaymentTypeId == 0
+////                ? i.DaTra == i.TongTien && (i.Discount > 0 || i.PaymentScore > 0) ? (double)(i.DaTra - i.Discount - i.PaymentScoreAmount)
+////                : (double)i.DaTra : 0,
+////            PaymentCard = i.PaymentTypeId == 1
+////                ? i.DaTra == i.TongTien && (i.Discount > 0 || i.PaymentScore > 0) ? (double)(i.DaTra - i.Discount - i.PaymentScoreAmount)
+////                : (double)i.DaTra : 0
+////        }).ToList();
+////        }
+//        return null;
+//    }
+
+
+//    private ReportByResponse getReportByGoods(ReportReq req)
+//    {
+////
+////        ReportByResponse result = new ReportByResponse();
+////        List<ReportByBaseItem> reportByItems = new ArrayList<>();
+////        var totalCount = 0;
+////
+////        List <PhieuXuatChiTiets> deliveryCands = getValidDeliveryItems(req);
+////
+////        var deliveryDrugs = deliveryCands.stream().map(PhieuXuatChiTiets::getThuocThuocId).distinct().toList();
+////        totalCount = deliveryDrugs.size();
+////        if (totalCount < 1)
+////        {
+////            return result;
+////        }
+////
+////        var drugIds = deliveryDrugs.OrderBy(i => i)
+////                .ToPagedQueryable(filter.PageIndex, filter.PageSize, totalCount).ToList();
+////        var drugUnitRep = IoC.Resolve<BaseRepositoryV2<MedDbContext, DonViTinh>>();
+////        var drugQueryable = (from dr in _dataFilterService.GetValidProducts(drugStoreCode, null, false)
+////        join u in drugUnitRep.GetAll() on dr.DonViXuatLe_MaDonViTinh equals u.MaDonViTinh
+////        where drugIds.Contains(dr.ThuocId)
+////        select new
+////        {
+////            DrugId = dr.ThuocId,
+////                    DrugCode = dr.MaThuoc,
+////                    DrugName = dr.TenThuoc,
+////                    DrugRetailUnitName = u.TenDonViTinh,
+////                    DrugGroupId = dr.NhomThuoc_MaNhomThuoc,
+////                    dr.Discount,
+////                    dr.DiscountByRevenue,
+////                    InPrice = dr.GiaNhap,
+////                    OutPrice = dr.GiaBanLe
+////        });
+////
+////        var drugs = drugQueryable.ToDictionary(i => i.DrugId, i => i);
+////        filter.DrugIds = drugIds.Select(i => i.Value).ToArray();
+////        var deliveryService = IoC.Resolve<IDeliveryNoteService>();
+////
+////        var deliveryItems = deliveryService.GetDeliveryNoteItems(drugStoreCode, filter, deliveryStatuses);
+////        var deliveryItemsByDrugs = deliveryItems.GroupBy(i => i.DrugId).ToDictionary(i => i.Key, i => i.ToList());
+////
+////        var receiptCands = _dataFilterService.GetValidReceiptItemsByCustomer(drugStoreCode, filter, receiptSatuses);
+////        var order = filter.PageIndex * filter.PageSize;
+////        if (filter.HasStaffIds)
+////        {
+////            var deliveryDrugIds = deliveryItemsByDrugs.Select(i => i.Key).ToList();
+////            drugs = drugs.Where(i => deliveryDrugIds.Contains(i.Key)).ToDictionary(i => i.Key, i => i.Value);
+////            receiptCands = receiptCands.Where(x => filter.StaffIds.Contains(x.CreatedById));
+////        }
+////        if(filter.HasCustomerIds)
+////        {
+////            receiptCands = receiptCands.Where(x => filter.CustomerIds.Contains(x.CusId));
+////        }
+////        //tính khách trả lại
+////        var idDrugsReturn = new Dictionary<int, ItemCusReturn>();
+////        if (receiptCands.Any())
+////        {
+////            idDrugsReturn = receiptCands.GroupBy(i => i.DrugId, (k, c) => new
+////            {
+////                Code = k,
+////                        Item = new ItemCusReturn()
+////                        {
+////                            Amount = c.Sum(x => x.RetailQuantity),
+////                            PriceIn = c.Sum(x => (double)x.RefPrice * x.RetailQuantity),
+////                            PriceOut = c.Sum(x => x.RetailOutPrice * x.RetailQuantity),
+////                            StaffId = c.Select(x => x.CreatedById).FirstOrDefault(),
+////                            ItemReturn = c.Select(b => new CusIdReturn()
+////                        {
+////                            CusId = b.CusId,
+////                                    RetailQuantity = b.RetailQuantity,
+////                                    ImportDate = b.ImportDate,
+////                        }).ToList(),
+////                        },
+////            }).ToDictionary(i => i.Code, i => i.Item);
+////        }
+////        drugs.ForEach(i =>
+////                {
+////                        var drug = drugs[i.Key];
+////        var rptItem = new ReportByGoodsItem()
+////        {
+////            Order = ++order,
+////            ItemId = drug.DrugId,
+////            ItemName = drug.DrugName,
+////            ItemNumber = drug.DrugCode,
+////            DrugUnit = drug.DrugRetailUnitName,
+////            Discount = (double)drug.Discount,
+////            InPrice = (double)drug.InPrice,
+////            OutPrice = (double)drug.OutPrice
+////        };
+////        if (deliveryItemsByDrugs.ContainsKey(i.Key))
+////        {
+////            var items = deliveryItemsByDrugs[i.Key];
+////            var tunrsCusBuy = items.Select(ii => ii.CustomerId.Value).Distinct();
+////            rptItem.TurnsCusBuy = tunrsCusBuy.Count();
+////            rptItem.DeliveryQuantity = items.Sum(ii => ii.RetailQuantity);
+////
+////            rptItem.Quantity = items.Sum(ii => ii.FinalRetailQuantity);
+////            rptItem.TotalAmount = items.Sum(ii => ii.FinalRetailAmount);
+////            rptItem.PaidAmount = items.Sum(ii => ii.FinalRetailAmount);
+////            rptItem.Revenue = items.Sum(ii => ii.Revenue);
+////            rptItem.TurnsBuy = items.Count();
+////            rptItem.DiscountCustomerAmount = items.Sum(ii => (ii.Price * (ii.Discount / 100)) * ii.Quantity);
+////
+////            if (idDrugsReturn.Any() && idDrugsReturn.ContainsKey(i.Key))
+////            {
+////                rptItem.ReturnedQuantity = idDrugsReturn[i.Key].Amount;
+////                rptItem.PaidAmount = rptItem.TotalAmount - (idDrugsReturn[i.Key].PriceOut);
+////                rptItem.Revenue = rptItem.Revenue - ((idDrugsReturn[i.Key].PriceOut - idDrugsReturn[i.Key].PriceIn));
+////                rptItem.ReturnedAmount = idDrugsReturn[i.Key].PriceOut;
+////                var itemCusReturn = idDrugsReturn[i.Key].ItemReturn.OrderByDescending(x => x.ImportDate);
+////                rptItem.TurnsCusReturn = itemCusReturn.Select(ii => ii.CusId).Distinct().Count();
+////                foreach (var itemReturn in itemCusReturn)
+////                {
+////                    var itemCusBuy = items.OrderByDescending(x => x.NoteDate)
+////                            .Select((value, index) => new { Value = value, Index = index })
+////                            .FirstOrDefault(x => x.Value.CustomerId == itemReturn.CusId &&
+////                        !x.Value.Flag && x.Value.NoteDate <= itemReturn.ImportDate
+////                        && x.Value.RetailQuantity == itemReturn.RetailQuantity);
+////                    if (itemCusBuy != null)
+////                    {
+////                        rptItem.TurnsBuy -= 1;
+////                        items[itemCusBuy.Index].Flag = true;
+////                    }
+////                }
+////            }
+////            if (rptItem.ReturnedQuantity > AppConstants.EspQuantity)
+////            {
+////                rptItem.ReturnedItem = true;
+////                rptItem.Quantity -= rptItem.ReturnedQuantity;
+////            }
+////        }
+////
+////        rptItem.DiscountAmount = Math.Round((drug.DiscountByRevenue ? rptItem.Revenue : rptItem.PaidAmount) * (rptItem.Discount / 100), 2);
+////        reportByItems.Add(rptItem);
+////            });
+////
+////        result.TotalAmount = reportByItems.Sum(i => i.TotalAmount);
+////        result.TotalRevenue = reportByItems.Sum(i => i.Revenue);
+////        result.TotalDiscount = reportByItems.Sum(i => i.DiscountAmount);
+////        result.TotalReturnAmount = reportByItems.Sum(i => i.ReturnedAmount);
+////        result.TotalPayment = reportByItems.Sum(i => i.PaidAmount);
+////        result.TotalCustomerDiscount = reportByItems.Sum(i => i.DiscountCustomerAmount);
+////
+////        result.PagingResultModel = new PagingResultModel<ReportByBaseItem>(reportByItems, totalCount);
+//
+//        return null;
+//    }
+
+
+    private List <PhieuXuatChiTiets> getValidDeliveryItems(ReportReq req){
+        PhieuXuatChiTietsReq reqPx = new PhieuXuatChiTietsReq();
+        reqPx.setFromDateNgayXuat(req.getReportFromDate());
+        reqPx.setFromDateNgayXuat(req.getReportToDate());
+        reqPx.setNhaThuocMaNhaThuoc(req.getDrugStoreId());
+        reqPx.setRecordStatusId(RecordStatusContains.ACTIVE);
+        reqPx.setListIdPhieuXuat(req.getListIdPhieuXuat());
+        List<PhieuXuatChiTiets> phieuXuatChiTiets = phieuXuatChiTietsRepository.searchListCustom(reqPx);
+        return phieuXuatChiTiets;
+    }
+
+
+    public InOutCommingNoteReportResponse getInOutCommingNoteReportData(ReportReq req) throws Exception {
+
+        Profile userInfo = this.getLoggedUser();
+        if (userInfo == null){
+            throw new Exception("Bad request.");
+        }
+        var fromDateToEnable = new Date(2022, 10, 10);
+
+        InOutCommingNoteReportResponse result = new InOutCommingNoteReportResponse();
+        List<InOutCommingNoteReportModel> lstReportModel = new ArrayList<>();
+        if(req.getReportFromDate().before(fromDateToEnable)){
+            req.setReportToDate(fromDateToEnable);
+        }
+        List<PhieuXuats> phieuXuats = getValidDeliveryNotes(req);
+        List<PhieuThuChis> phieuThuChis = getValidInOutCommingNotes(req);
+
+
+        ReportReq firstAmountFilter = new ReportReq();
+        BeanUtils.copyProperties(req,firstAmountFilter);
+        firstAmountFilter.setReportFromDate(fromDateToEnable);
+        firstAmountFilter.setReportToDate(req.getReportFromDate());
+        List<PhieuThuChis> phieuThuChisFirstAmount = getValidInOutCommingNotes(req);
+
+
+
+        NhaThuocsReq reqNt =  new NhaThuocsReq();
+        reqNt.setMaNhaThuocCha(userInfo.getNhaThuoc().getMaNhaThuoc());
+        reqNt.setRecordStatusId(RecordStatusContains.ACTIVE);
+        List<NhaThuocs> nhaThuocs = nhaThuocsRepository.searchList(reqNt);
+        DecimalFormat decimalFormat = new DecimalFormat("#,##0");
+        for (NhaThuocs nhaThuoc : nhaThuocs ) {
+            if(lstReportModel.size() == req.getPaggingReq().getLimit()){
+                break;
+            }
+            List<PhieuThuChis> firstInCommingNotesDictionary = phieuThuChisFirstAmount.stream().filter(item -> item.getMaCoSo() != null && item.getMaCoSo().equals(nhaThuoc.getMaNhaThuoc())
+                    && Objects.equals(item.getLoaiPhieu(), InOutCommingType.OtherIncomming)).toList();
+            Map<Long, BigDecimal> firstInCommingNotesDictionaryMap = firstInCommingNotesDictionary.stream().collect(Collectors.groupingBy(
+                    PhieuThuChis::getNhanVienId,
+                    Collectors.reducing(BigDecimal.ZERO, PhieuThuChis::getAmount, BigDecimal::add))
+            );
+
+
+            List<PhieuThuChis> firstOutCommingNotesDictionary = phieuThuChisFirstAmount.stream().filter(item -> item.getMaCoSo() != null && item.getMaCoSo().equals(nhaThuoc.getMaNhaThuoc())
+                    && Objects.equals(item.getLoaiPhieu(), InOutCommingType.OtherOutcomming) || Objects.equals(item.getLoaiPhieu(), InOutCommingType.BusinessCosts) ).toList();
+            Map<Long, BigDecimal> firstOutCommingNotesDictionaryMap = firstOutCommingNotesDictionary.stream().collect(Collectors.groupingBy(
+                    PhieuThuChis::getNhanVienId,
+                    Collectors.reducing(BigDecimal.ZERO, PhieuThuChis::getAmount, BigDecimal::add))
+            );
+
+            Map<Long, BigDecimal> dNotesDictionaryMap = phieuXuats.stream()
+                    .filter(item -> item.getCreatedByUserId() != null).collect(Collectors.groupingBy(
+                    PhieuXuats::getCreatedByUserId,
+                    Collectors.reducing(BigDecimal.ZERO, PhieuXuats::getTongTien, BigDecimal::add))
+            );
+
+            List<PhieuThuChis> inCommingNotesDictionary = phieuThuChis.stream().filter(item -> item.getMaCoSo() != null && item.getMaCoSo().equals(nhaThuoc.getMaNhaThuoc())
+                    && Objects.equals(item.getLoaiPhieu(), InOutCommingType.OtherIncomming)).toList();
+            Map<Long, BigDecimal> inCommingNotesDictionaryMap = inCommingNotesDictionary.stream().collect(Collectors.groupingBy(
+                    PhieuThuChis::getNhanVienId,
+                    Collectors.reducing(BigDecimal.ZERO, PhieuThuChis::getAmount, BigDecimal::add))
+            );
+
+            List<PhieuThuChis> outCommingNotesDictionary = phieuThuChis.stream().filter(item -> item.getMaCoSo() != null && item.getMaCoSo().equals(nhaThuoc.getMaNhaThuoc())
+                    && Objects.equals(item.getLoaiPhieu(), InOutCommingType.OtherOutcomming) || Objects.equals(item.getLoaiPhieu(), InOutCommingType.BusinessCosts)).toList();
+            Map<Long, BigDecimal> outCommingNotesDictionaryMap = outCommingNotesDictionary.stream().collect(Collectors.groupingBy(
+                    PhieuThuChis::getNhanVienId,
+                    Collectors.reducing(BigDecimal.ZERO, PhieuThuChis::getAmount, BigDecimal::add))
+            );
+
+
+            NhanVienNhaThuocsReq nhanVienNhaThuocsReq = new NhanVienNhaThuocsReq();
+            nhanVienNhaThuocsReq.setNhaThuocMaNhaThuoc(userInfo.getNhaThuoc().getMaNhaThuoc());
+
+            List<NhanVienNhaThuocs> nhanVienNhaThuocs = nhanVienNhaThuocsRepository.searchList(nhanVienNhaThuocsReq);
+
+            nhanVienNhaThuocs.forEach(nvien ->{
+
+                BigDecimal firstInCommingAmount = firstInCommingNotesDictionaryMap.getOrDefault(nvien.getUserUserId(), BigDecimal.ZERO);
+                BigDecimal firstOutCommingAmount = firstOutCommingNotesDictionaryMap.getOrDefault(nvien.getUserUserId(), BigDecimal.ZERO);
+                BigDecimal sellAmount = dNotesDictionaryMap.getOrDefault(nvien.getUserUserId(), BigDecimal.ZERO);
+                BigDecimal inCommingAmount = inCommingNotesDictionaryMap.getOrDefault(nvien.getUserUserId(), BigDecimal.ZERO);
+                BigDecimal outCommingAmount = outCommingNotesDictionaryMap.getOrDefault(nvien.getUserUserId(), BigDecimal.ZERO);
+
+
+
+                InOutCommingNoteReportModel model = new InOutCommingNoteReportModel();
+                model.setFirstAmount(firstInCommingAmount.subtract(firstOutCommingAmount));
+                model.setSellAmount(sellAmount);
+                model.setInCommingAmount(inCommingAmount);
+                model.setOutCommingAmount(outCommingAmount);
+
+                if (model.getFirstAmount().compareTo(BigDecimal.ZERO) > 0 ||  model.getSellAmount().compareTo(BigDecimal.ZERO) > 0 ||
+                    model.getInCommingAmount().compareTo(BigDecimal.ZERO) > 0 ||
+                    model.getOutCommingAmount().compareTo(BigDecimal.ZERO) > 0 || model.getEndAmount().compareTo(BigDecimal.ZERO) > 0)
+                {
+                    Optional<UserProfile> byId = userProfileRepository.findById(nvien.getUserUserId());
+                    model.setChildStoreCode(nhaThuoc.getMaNhaThuoc());
+                    model.setChildStoreName(nhaThuoc.getTenNhaThuoc());
+                    if(byId.isPresent()){
+                        model.setStaffId(byId.get().getId());
+                        model.setStaffName(byId.get().getTenDayDu());
+                    }
+                    lstReportModel.add(model);
+                }
+            });
+        };
+
+        if(lstReportModel.isEmpty()){
+            return result;
+        }
+        BigDecimal getFirstAmount = lstReportModel.stream()
+                .map(InOutCommingNoteReportModel::getFirstAmount) // Chọn cột để tính tổng (ví dụ là cột 2)
+                .reduce(BigDecimal.valueOf(0), BigDecimal::add);
+        BigDecimal getSellAmount = lstReportModel.stream()
+                .map(InOutCommingNoteReportModel::getSellAmount) // Chọn cột để tính tổng (ví dụ là cột 2)
+                .reduce(BigDecimal.valueOf(0), BigDecimal::add);
+        BigDecimal getInCommingAmount = lstReportModel.stream()
+                .map(InOutCommingNoteReportModel::getInCommingAmount) // Chọn cột để tính tổng (ví dụ là cột 2)
+                .reduce(BigDecimal.valueOf(0), BigDecimal::add);
+        BigDecimal getOutCommingAmount = lstReportModel.stream()
+                .map(InOutCommingNoteReportModel::getOutCommingAmount) // Chọn cột để tính tổng (ví dụ là cột 2)
+                .reduce(BigDecimal.valueOf(0), BigDecimal::add);
+        BigDecimal getEndAmount = lstReportModel.stream()
+                .map(InOutCommingNoteReportModel::getEndAmount) // Chọn cột để tính tổng (ví dụ là cột 2)
+                .reduce(BigDecimal.valueOf(0), BigDecimal::add);
+
+        result.setFirstTotalAmount(getFirstAmount);
+        result.setSellTotalAmount(getSellAmount);
+        result.setInCommingTotalAmount(getInCommingAmount);
+        result.setOutCommingTotalAmount(getOutCommingAmount);
+        result.setEndTotalAmount(getEndAmount);
+        result.setListDetail(lstReportModel);
+        return result;
+    }
+
+    public InventoryWarehouseResponse getInventoryWarehouseData(ReportReq req) throws Exception {
+
+        Profile userInfo = this.getLoggedUser();
+        if (userInfo == null){
+            throw new Exception("Bad request.");
+        }
+
+        InventoryWarehouseResponse result = new InventoryWarehouseResponse();
+        List<InventoryWarehouseItem> lstReportModel = new ArrayList<>();
+
+        PhieuKiemKesReq phieuKiemKesReq = new PhieuKiemKesReq();
+        phieuKiemKesReq.setNhaThuocMaNhaThuoc(userInfo.getNhaThuoc().getMaNhaThuoc());
+        phieuKiemKesReq.setRecordStatusId(RecordStatusContains.ACTIVE);
+        phieuKiemKesReq.setDaCanKho(true);
+        phieuKiemKesReq.setFromDate(req.getReportFromDate());
+        phieuKiemKesReq.setToDate(req.getReportToDate());
+        List<PhieuKiemKes> phieuKiemKesList = phieuKiemKesRepository.searchList(phieuKiemKesReq);
+
+        if(phieuKiemKesList.isEmpty()){
+            return result;
+        }
+        // Phiếu bù nhập
+        if(req.getNoteTypeId().equals(ENoteType.Receipt)){
+            for (PhieuKiemKes phieuKiemKe: phieuKiemKesList ) {
+                if(lstReportModel.size() == req.getPaggingReq().getLimit()){
+                    break;
+                }
+                if(phieuKiemKe.getPhieuNhapMaPhieuNhap() != null){
+                    Optional<PhieuNhaps> phieuNhapsOtp = phieuNhapsRepository.findById(phieuKiemKe.getPhieuNhapMaPhieuNhap());
+                    if(phieuNhapsOtp.isPresent()){
+                        PhieuNhaps phieuNhaps = phieuNhapsOtp.get();
+                        List<PhieuNhapChiTiets> allByPhieuNhapMaPhieuNhap = phieuNhapChiTietsRepository.findAllByPhieuNhapMaPhieuNhap(phieuNhaps.getId());
+                        if(!allByPhieuNhapMaPhieuNhap.isEmpty()){
+                            for (PhieuNhapChiTiets ctiet: allByPhieuNhapMaPhieuNhap) {
+                                Optional<Thuocs> byId = thuocsRepository.findById(ctiet.getThuocThuocId());
+                                if(byId.isPresent()){
+                                    BigDecimal multiply = ctiet.getSoLuong().multiply(byId.get().getGiaBanLe());
+                                    ctiet.setTotalAmount(multiply);
+                                }
+                            }
+                            for (PhieuNhapChiTiets ctiet: allByPhieuNhapMaPhieuNhap) {
+                                if(lstReportModel.size() == req.getPaggingReq().getLimit()){
+                                    break;
+                                }
+                                Optional<Thuocs> byId = thuocsRepository.findById(ctiet.getThuocThuocId());
+                                if(byId.isPresent()){
+                                    Thuocs thuocs = byId.get();
+                                    Optional<DonViTinhs> byId1 = donViTinhsRepository.findById(thuocs.getDonViXuatLeMaDonViTinh());
+                                    InventoryWarehouseItem inventoryWarehouseItem = new InventoryWarehouseItem();
+                                    inventoryWarehouseItem.setNoteNumber(phieuNhaps.getSoPhieuNhap());
+                                    inventoryWarehouseItem.setNoteId(phieuNhaps.getId());
+                                    inventoryWarehouseItem.setItemDate(phieuKiemKe.getCreated());
+                                    inventoryWarehouseItem.setInventoryItemId(phieuKiemKe.getId());
+                                    inventoryWarehouseItem.setItemId(thuocs.getId());
+                                    inventoryWarehouseItem.setItemCode(thuocs.getMaThuoc());
+                                    inventoryWarehouseItem.setItemName(thuocs.getTenThuoc());
+                                    byId1.ifPresent(donViTinhs -> inventoryWarehouseItem.setUnitName(donViTinhs.getTenDonViTinh()));
+                                    inventoryWarehouseItem.setQuantity(ctiet.getSoLuong());
+                                    inventoryWarehouseItem.setPrice(ctiet.getGiaNhap());
+                                    inventoryWarehouseItem.setOutPrice(thuocs.getGiaBanLe());
+                                    inventoryWarehouseItem.setAmount(phieuNhaps.getTongTien());
+                                    BigDecimal reduce = allByPhieuNhapMaPhieuNhap.stream().map(PhieuNhapChiTiets::getTotalAmount) // Chọn cột để tính tổng (ví dụ là cột 2)
+                                            .reduce(BigDecimal.valueOf(0), BigDecimal::add);
+                                    inventoryWarehouseItem.setTotalAmount(reduce);
+                                    lstReportModel.add(inventoryWarehouseItem);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        // Phiếu bù xuất
+        else if(req.getNoteTypeId().equals(ENoteType.Delivery)){
+            for (PhieuKiemKes phieuKiemKe: phieuKiemKesList ) {
+                if(lstReportModel.size() == req.getPaggingReq().getLimit()){
+                    break;
+                }
+                if(phieuKiemKe.getPhieuXuatMaPhieuXuat() != null){
+                    Optional<PhieuXuats> phieuXuatsOtp = phieuXuatsRepository.findById(phieuKiemKe.getPhieuXuatMaPhieuXuat());
+                    if(phieuXuatsOtp.isPresent()){
+                        PhieuXuats phieuNhaps = phieuXuatsOtp.get();
+                        List<PhieuXuatChiTiets> allByPhieuXuatMaPhieuXuat = phieuXuatChiTietsRepository.findAllByPhieuXuatMaPhieuXuat(phieuNhaps.getId());
+                        if(!allByPhieuXuatMaPhieuXuat.isEmpty()){
+                            for (PhieuXuatChiTiets ctiet: allByPhieuXuatMaPhieuXuat) {
+                                Optional<Thuocs> byId = thuocsRepository.findById(ctiet.getThuocThuocId());
+                                if(byId.isPresent()){
+                                    BigDecimal multiply = ctiet.getSoLuong().multiply(byId.get().getGiaBanLe());
+                                    ctiet.setTotalAmount(multiply);
+                                }
+                            }
+                            for (PhieuXuatChiTiets ctiet: allByPhieuXuatMaPhieuXuat) {
+                                if(lstReportModel.size() == req.getPaggingReq().getLimit()){
+                                    break;
+                                }
+                                Optional<Thuocs> byId = thuocsRepository.findById(ctiet.getThuocThuocId());
+                                if(byId.isPresent()){
+                                    Thuocs thuocs = byId.get();
+                                    Optional<DonViTinhs> byId1 = donViTinhsRepository.findById(thuocs.getDonViXuatLeMaDonViTinh());
+                                    InventoryWarehouseItem inventoryWarehouseItem = new InventoryWarehouseItem();
+                                    inventoryWarehouseItem.setNoteNumber(phieuNhaps.getSoPhieuXuat());
+                                    inventoryWarehouseItem.setNoteId(phieuNhaps.getId());
+                                    inventoryWarehouseItem.setItemDate(phieuKiemKe.getCreated());
+                                    inventoryWarehouseItem.setInventoryItemId(phieuKiemKe.getId());
+                                    inventoryWarehouseItem.setItemId(thuocs.getId());
+                                    inventoryWarehouseItem.setItemCode(thuocs.getMaThuoc());
+                                    inventoryWarehouseItem.setItemName(thuocs.getTenThuoc());
+                                    byId1.ifPresent(donViTinhs -> inventoryWarehouseItem.setUnitName(donViTinhs.getTenDonViTinh()));
+                                    inventoryWarehouseItem.setQuantity(ctiet.getSoLuong());
+                                    inventoryWarehouseItem.setPrice(ctiet.getGiaXuat());
+                                    inventoryWarehouseItem.setOutPrice(thuocs.getGiaBanLe());
+                                    inventoryWarehouseItem.setAmount(phieuNhaps.getTongTien());
+                                    BigDecimal reduce = allByPhieuXuatMaPhieuXuat.stream().map(PhieuXuatChiTiets::getTotalAmount) // Chọn cột để tính tổng (ví dụ là cột 2)
+                                            .reduce(BigDecimal.valueOf(0), BigDecimal::add);
+                                    inventoryWarehouseItem.setTotalAmount(reduce);
+                                    lstReportModel.add(inventoryWarehouseItem);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if(lstReportModel.isEmpty()){
+            return result;
+        }
+        BigDecimal getTotalAmount = lstReportModel.stream()
+                .map(item -> item.getQuantity().multiply(item.getPrice())) // Chọn cột để tính tổng (ví dụ là cột 2)
+                .reduce(BigDecimal.valueOf(0), BigDecimal::add);
+        BigDecimal getTotalAmountByOutPrice = lstReportModel.stream()
+                .map(item -> item.getQuantity().multiply(item.getOutPrice())) // Chọn cột để tính tổng (ví dụ là cột 2)
+                .reduce(BigDecimal.valueOf(0), BigDecimal::add);
+        result.setTotalAmount(getTotalAmount);
+        result.setTotalAmountByOutPrice(getTotalAmountByOutPrice);
+        result.setListDetail(lstReportModel);
+        return result;
+    }
+
+
+
+
     }
 

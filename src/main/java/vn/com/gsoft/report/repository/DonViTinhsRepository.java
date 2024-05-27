@@ -1,11 +1,11 @@
-package vn.com.gsoft.report.repository.ReportingDate;
+package vn.com.gsoft.report.repository;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-import vn.com.gsoft.report.entity.ReportingDate.DonViTinhs;
+import vn.com.gsoft.report.entity.DonViTinhs;
 import vn.com.gsoft.report.model.dto.ReportingDate.DonViTinhsReq;
 import vn.com.gsoft.report.repository.BaseRepository;
 ;

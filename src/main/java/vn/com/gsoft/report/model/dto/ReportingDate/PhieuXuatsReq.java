@@ -1,7 +1,7 @@
 package vn.com.gsoft.report.model.dto.ReportingDate;
 
 import lombok.Data;
-import vn.com.gsoft.report.entity.ReportingDate.PhieuXuatChiTiets;
+import vn.com.gsoft.report.entity.PhieuXuatChiTiets;
 import vn.com.gsoft.report.model.system.BaseRequest;
 
 import java.math.BigDecimal;

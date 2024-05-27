@@ -1,6 +1,7 @@
-package vn.com.gsoft.report.entity.ReportingDate;
+package vn.com.gsoft.report.entity;
 
 import jakarta.persistence.*;
+import jakarta.persistence.Entity;
 import lombok.*;
 import vn.com.gsoft.report.entity.BaseEntity;
 

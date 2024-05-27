@@ -6,11 +6,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import vn.com.gsoft.report.entity.ReportingDate.PhieuXuatChiTiets;
-import vn.com.gsoft.report.entity.ReportingDate.PhieuXuats;
+import vn.com.gsoft.report.entity.PhieuXuatChiTiets;
+import vn.com.gsoft.report.entity.PhieuXuats;
 import vn.com.gsoft.report.model.dto.ReportingDate.PhieuXuatsReq;
 import vn.com.gsoft.report.model.system.Profile;
-import vn.com.gsoft.report.repository.ReportingDate.*;
+import vn.com.gsoft.report.repository.*;
 import vn.com.gsoft.report.service.ReportingDate.PhieuXuatsService;
 import vn.com.gsoft.report.service.impl.BaseServiceImpl;
 
@@ -65,7 +65,7 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
                 khachHangsRepository.findById(item.getKhachHangMaKhachHang()).ifPresent(khachHangs -> item.setTenKhachHang(khachHangs.getTenKhachHang()));
             }
             if (item.getSoPhieuXuat() != null) {
-                List<PhieuXuatChiTiets> listDtl = phieuXuatChiTietsRepository.findAllByPhieuXuatMaPhieuXuat(item.getSoPhieuXuat().intValue());
+                List<PhieuXuatChiTiets> listDtl = phieuXuatChiTietsRepository.findAllByPhieuXuatMaPhieuXuat(item.getId());
                 listDtl.forEach(child -> {
                     if (child.getThuocThuocId() != null) {
                         thuocsRepository.findById(child.getThuocThuocId()).ifPresent(thuoc -> {

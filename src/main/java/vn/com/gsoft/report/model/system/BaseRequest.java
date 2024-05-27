@@ -7,6 +7,7 @@ import java.util.List;
 @Data
 public class BaseRequest {
 	private Long id;
+	private List<Long> ids;
 	private String maNhaThuoc;
 	private Long userIdQueryData;
 	private String textSearch;

@@ -1,6 +1,7 @@
-package vn.com.gsoft.report.entity.ReportingDate;
+package vn.com.gsoft.report.entity;
 
 import jakarta.persistence.*;
+import jakarta.persistence.Entity;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -52,13 +53,13 @@ public class PhieuNhapChiTiets extends BaseEntity {
     @Column(name = "RemainRefQuantity")
     private Float remainRefQuantity;
     @Column(name = "RetailQuantity")
-    private Float retailQuantity;
+    private BigDecimal retailQuantity;
     @Column(name = "PreRetailQuantity")
     private Float preRetailQuantity;
     @Column(name = "HandledStatusId")
     private Long handledStatusId;
     @Column(name = "RetailPrice")
-    private Float retailPrice;
+    private BigDecimal retailPrice;
     @Column(name = "RequestUpdateFromBkgService")
     private Boolean requestUpdateFromBkgService;
     @Column(name = "ReduceNoteItemIds")
@@ -112,5 +113,8 @@ public class PhieuNhapChiTiets extends BaseEntity {
 
     @Transient
     private BigDecimal finalRetailPrice;
+
+    @Transient
+    private BigDecimal totalAmount;
 }
 
