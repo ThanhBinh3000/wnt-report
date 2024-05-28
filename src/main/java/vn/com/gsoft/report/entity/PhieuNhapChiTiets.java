@@ -116,5 +116,9 @@ public class PhieuNhapChiTiets extends BaseEntity {
 
     @Transient
     private BigDecimal totalAmount;
+
+    @Transient
+    private Long loaiXuatNhapMaLoaiXuatNhap; // Mã Loại Xuất Nhập
+
 }
 

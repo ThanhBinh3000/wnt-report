@@ -25,7 +25,7 @@ public class ENoteType {
     /// <summary>
     /// Inventory adjustment - Nhật + Xuất Điều chỉnh hàng tồn kho
     /// </summary>
-    public static final Integer InventoryAdjustment = 5;
+    public static final Long InventoryAdjustment = 5L;
 
     /// <summary>
     /// Initial inventory   - Hàng tồn kho ban đầu
@@ -40,12 +40,12 @@ public class ENoteType {
     /// <summary>
     /// Warehouse transfer
     /// </summary>
-    public static final Integer WarehouseTransfer = 8;
+    public static final Long WarehouseTransfer = 8L;
 
     /// <summary>
     /// Cancel delivery - Xuất hủy
     /// </summary>
-    public static final Integer CancelDelivery = 9;
+    public static final Long CancelDelivery = 9L;
 
     /// <summary>
     /// Quality control book
@@ -61,4 +61,6 @@ public class ENoteType {
     public static final Integer ReceiptMedicalFee = 14;
     //Phiếu dự trù
     public static final Integer NoteReserve = 15;
+
+
 }

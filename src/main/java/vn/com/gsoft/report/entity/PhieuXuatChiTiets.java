@@ -49,7 +49,7 @@ public class PhieuXuatChiTiets extends BaseEntity {
     @Column(name = "IsReceiptDrugPriceRefGenerated")
     private Boolean isReceiptDrugPriceRefGenerated; // Đã tạo giá thuốc tham chiếu
     @Column(name = "RetailQuantity")
-    private Float retailQuantity; // Số lượng bán lẻ
+    private BigDecimal retailQuantity; // Số lượng bán lẻ
     @Column(name = "HandledStatusId")
     private Long handledStatusId; // ID trạng thái đã xử lý
     @Column(name = "RetailPrice")
@@ -111,4 +111,7 @@ public class PhieuXuatChiTiets extends BaseEntity {
 
     @Transient
     private BigDecimal totalAmount;
+
+    @Transient
+    private Long loaiXuatNhapMaLoaiXuatNhap; // Mã Loại Xuất Nhập
 }

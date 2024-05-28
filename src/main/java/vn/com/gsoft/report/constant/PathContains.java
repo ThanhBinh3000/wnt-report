@@ -17,4 +17,5 @@ public class PathContains {
     public static final String URL_BAO_CAO_TONG_HOP_THU_CHI = "/getInOutCommingNoteReportData";
 
     public static final String URL_BAO_CAO_KIEM_KE = "/getInventoryWarehouseData";
+    public static final String URL_BAO_CAO_THEO_KHO_HANG = "/getDrugWarehouses";
 }

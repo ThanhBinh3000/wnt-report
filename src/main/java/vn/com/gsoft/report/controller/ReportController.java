@@ -59,4 +59,11 @@ public class ReportController {
         return ResponseEntity.ok(ResponseUtils.ok(service.getInventoryWarehouseData(objReq)));
     }
 
+
+    @PostMapping(value = PathContains.URL_BAO_CAO_THEO_KHO_HANG, produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<BaseResponse> getDrugWarehouses(@RequestBody ReportReq objReq) throws Exception {
+        return ResponseEntity.ok(ResponseUtils.ok(service.getDrugWarehouses(objReq)));
+    }
+
 }

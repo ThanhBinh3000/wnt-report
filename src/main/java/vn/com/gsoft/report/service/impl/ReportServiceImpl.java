@@ -4,8 +4,12 @@ package vn.com.gsoft.report.service.impl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import vn.com.gsoft.report.constant.AppConstants;
 import vn.com.gsoft.report.constant.ENoteType;
 import vn.com.gsoft.report.constant.InOutCommingType;
 import vn.com.gsoft.report.constant.RecordStatusContains;
@@ -1704,8 +1708,236 @@ public class ReportServiceImpl {
         return result;
     }
 
+    public DrugWarehouseResponse getDrugWarehouses(ReportReq req) throws Exception {
+        Profile userInfo = this.getLoggedUser();
+        if (userInfo == null){
+            throw new Exception("Bad request.");
+        }
+        DrugWarehouseResponse result = new DrugWarehouseResponse();
+        List<DrugWarehouseItem> lstReportModel = new ArrayList<>();
+        ThuocsReq thuocsReq = new ThuocsReq();
+        thuocsReq.setNhaThuocMaNhaThuoc(userInfo.getNhaThuoc().getMaNhaThuoc());
+        Pageable pageable = PageRequest.of(req.getPaggingReq().getPage(), req.getPaggingReq().getLimit());
+
+        Page<Thuocs> thuocPage = thuocsRepository.searchPage(thuocsReq,pageable);
+
+        if(thuocPage.getContent().isEmpty()){
+            return result;
+        }
+
+        for (Thuocs thuocs : thuocPage.getContent()) {
+            Optional<DonViTinhs> byId1 = donViTinhsRepository.findById(thuocs.getDonViXuatLeMaDonViTinh());
+            byId1.ifPresent(donViTinhs -> thuocs.setTenDonViTinhXuatLe(donViTinhs.getTenDonViTinh()));
+            this.bindingDataThuoc(thuocs,req);
+        }
 
 
+        List<Thuocs> listItem = thuocPage.getContent();
+
+//        result.DeliveryValueTotal = filter.GroupFilterTypeId == (int)GroupFilterType.All ? drugWarehouseItems.Sum(i => i.DeliveryInventoryValueInPeriod) - moneyCusreturn : drugWarehouseItems.Sum(i => i.DeliveryInventoryValueInPeriod);
+
+        BigDecimal getFirsInventoryValueTotal = listItem.stream()
+                .filter(item -> item.getFirstInventoryValue() != null)
+                .map(item -> item.getFirstInventoryValue())
+                .reduce(BigDecimal.valueOf(0), BigDecimal::add);
+        BigDecimal getLastInventoryValueTotal = lstReportModel.stream()
+                .map(item -> item.getLastInventoryValue())
+                .reduce(BigDecimal.valueOf(0), BigDecimal::add);
+        BigDecimal getReceiptValueTotal = lstReportModel.stream()
+                .map(item -> item.getReceiptInventoryValueInPeriod())
+                .reduce(BigDecimal.valueOf(0), BigDecimal::add);
+        BigDecimal getDeliveryValueTotal1 = lstReportModel.stream()
+                .map(item -> item.getDeliveryInventoryValueInPeriod1())
+                .reduce(BigDecimal.valueOf(0), BigDecimal::add);
+        BigDecimal getFirsInventoryValueTotal1 = lstReportModel.stream()
+                .map(item -> item.getFirstInventoryValue1())
+                .reduce(BigDecimal.valueOf(0), BigDecimal::add);
+        BigDecimal getLastInventoryValueTotal1 = lstReportModel.stream()
+                .map(item -> item.getLastInventoryValue1())
+                .reduce(BigDecimal.valueOf(0), BigDecimal::add);
+        BigDecimal getReceiptValueTotal1 = lstReportModel.stream()
+                .map(item -> item.getReceiptInventoryValueInPeriod1())
+                .reduce(BigDecimal.valueOf(0), BigDecimal::add);
+
+        result.setFirsInventoryValueTotal(getFirsInventoryValueTotal);
+        result.setLastInventoryValueTotal(getLastInventoryValueTotal);
+        result.setReceiptValueTotal(getReceiptValueTotal);
+        result.setDeliveryValueTotal1(getDeliveryValueTotal1);
+        result.setFirsInventoryValueTotal1(getFirsInventoryValueTotal1);
+        result.setLastInventoryValueTotal1(getLastInventoryValueTotal1);
+        result.setReceiptValueTotal1(getReceiptValueTotal1);
+
+        result.setPageDetail(thuocPage);
+
+        return result;
+    }
+
+
+    public void bindingDataThuoc(Thuocs thuocs,ReportReq reportReq){
+        //Set thuoc
+        thuocs.setFirstInventoryValue(thuocs.getSoDuDauKy().multiply(thuocs.getGiaDauKy()));
+        thuocs.setInitReceiptQuantity(thuocs.getSoDuDauKy());
+        thuocs.setInitReceiptValue(thuocs.getSoDuDauKy().multiply(thuocs.getGiaDauKy()));
+        thuocs.setInitRetailPrice(thuocs.getGiaDauKy());
+        thuocs.setLastReceiptRetailPrice(thuocs.getGiaDauKy());
+        // START FirstInventoryQuantity = Math.Round(InitReceiptQuantity + FirstReceiptQuantity - FirstDeliveryQuantity, 1);
+        thuocs.setInitReceiptQuantity(thuocs.getSoDuDauKy());
+        // Phiếu nhập
+        List<PhieuNhapChiTiets> receiptItems = getValidPhieuNhapChiTiet(thuocs,reportReq);
+        //Phieesu xuất
+        List<PhieuXuatChiTiets> deliveryItems = getValidPhieuXuatChiTiet(thuocs,reportReq);
+
+
+        // Arena nhập
+        List<PhieuNhapChiTiets> validReceiptItems = receiptItems.stream().filter(item ->
+                item.getLoaiXuatNhapMaLoaiXuatNhap().equals(ENoteType.Receipt) || item.getLoaiXuatNhapMaLoaiXuatNhap().equals(ENoteType.InventoryAdjustment)).toList();
+        BigDecimal receiptQuantity = validReceiptItems.stream()
+                .filter(item -> item.getRetailQuantity() != null)
+                .map(item -> item.getRetailQuantity())
+                .reduce(BigDecimal.valueOf(0), BigDecimal::add);
+
+        List<PhieuNhapChiTiets> returnedFromCustomerItems = receiptItems.stream().filter(item ->
+                item.getLoaiXuatNhapMaLoaiXuatNhap().equals(ENoteType.ReturnFromCustomer)).toList();
+        BigDecimal returnedFromCustomerQuantity = returnedFromCustomerItems.stream()
+                .filter(item -> item.getRetailQuantity() != null)
+                .map(item -> item.getRetailQuantity())
+                .reduce(BigDecimal.valueOf(0), BigDecimal::add);
+
+
+        // Arena xuất
+        List<PhieuXuatChiTiets> validDeliveryItems = deliveryItems.stream().filter(item ->
+                item.getLoaiXuatNhapMaLoaiXuatNhap().equals(ENoteType.Delivery) ||
+                item.getLoaiXuatNhapMaLoaiXuatNhap().equals(ENoteType.InventoryAdjustment) ||
+                item.getLoaiXuatNhapMaLoaiXuatNhap().equals(ENoteType.WarehouseTransfer) ||
+                item.getLoaiXuatNhapMaLoaiXuatNhap().equals(ENoteType.CancelDelivery)).toList();
+        BigDecimal deliveryQuantity = validDeliveryItems.stream()
+                .filter(item -> item.getRetailQuantity() != null)
+                .map(item -> item.getRetailQuantity())
+                .reduce(BigDecimal.valueOf(0), BigDecimal::add);
+
+        List<PhieuXuatChiTiets> returnedToSupplyerItems = deliveryItems.stream().filter(item ->
+                item.getLoaiXuatNhapMaLoaiXuatNhap().equals(ENoteType.ReturnFromCustomer)).toList();
+        BigDecimal returnedToSupplyerQuantity = returnedToSupplyerItems.stream()
+                .filter(item -> item.getRetailQuantity() != null)
+                .map(item -> item.getRetailQuantity())
+                .reduce(BigDecimal.valueOf(0), BigDecimal::add);
+
+        thuocs.setFirstDeliveryQuantity(deliveryQuantity.add(returnedToSupplyerQuantity));
+        thuocs.setFirstReceiptQuantity(receiptQuantity.add(returnedFromCustomerQuantity));
+
+
+        // START ReceiptInventoryQuantityInPeriod  = LastReceiptQuantity - FirstReceiptQuantity
+        thuocs.setLastReceiptQuantity(receiptQuantity.add(returnedFromCustomerQuantity));
+        // FirstReceiptQuantity đã set ở trên
+
+
+        // START DeliveryInventoryQuantityInPeriod = LastDeliveryQuantity - FirstDeliveryQuantity ;
+        thuocs.setLastDeliveryQuantity(deliveryQuantity.add(returnedToSupplyerQuantity));
+        // FirstDeliveryQuantity set ở trên;
+
+
+
+        // Set FirstInventoryValue
+        BigDecimal inventoryQuantity = thuocs.getFirstInventoryQuantity().subtract(thuocs.getInitReceiptQuantity());
+        if (inventoryQuantity.compareTo(AppConstants.EspQuantity)>0)
+        {
+            // TODO
+//            BigDecimal quantity = inventoryQuantity;
+//
+//            List<PhieuNhapChiTiets> validReceiptItems1 = validReceiptItems;
+//
+//            while (quantity.compareTo(AppConstants.EspQuantity) > 0 && validReceiptItems1.size() > 0)
+//            {
+//                var usedQuantity = Math.Min(quantity, receiptItemsByDrug[0].RetailQuantity);
+//                var firstItem = receiptItemsByDrug[0];
+//                quantity -= usedQuantity;
+//                inventoryValue += usedQuantity * firstItem.RetailPrice;
+//                receiptItemsByDrug.RemoveAt(0);
+//            }
+//            if (quantity > AppConstants.EspQuantity)
+//            {
+//                inventoryValue += quantity * thuocs.getInitRetailPrice();
+//            }
+//            inventoryValue += drugWarehouse.InitReceiptValue;
+        }
+        else
+        {
+            thuocs.setFirstInventoryValue(thuocs.getFirstInventoryQuantity().multiply(thuocs.getInitReceiptQuantity()));
+        }
+        if (thuocs.getFirstInventoryQuantity().compareTo(AppConstants.EspQuantity)<0)
+        {
+            thuocs.setFirstInventoryValue(BigDecimal.ZERO);
+        }
+
+        // Set LastInventoryValue
+        var lastInventoryQuantity = thuocs.getLastInventoryQuantity().subtract(thuocs.getInitReceiptQuantity());
+        BigDecimal inventoryValue = BigDecimal.ZERO;
+        if (lastInventoryQuantity.compareTo(AppConstants.EspQuantity) > 0)
+        {
+            // TODO
+//            if (receiptItemsByDrug != null)
+//            {
+//                var quantity = inventoryQuantity;
+//                while (quantity > AppConstants.EspQuantity && receiptItemsByDrug.Count > 0)
+//                {
+//                    var usedQuantity = Math.Min(quantity, receiptItemsByDrug[0].RetailQuantity);
+//                    var firstItem = receiptItemsByDrug[0];
+//                    quantity -= usedQuantity;
+//                    inventoryValue += usedQuantity * firstItem.RetailPrice * (1 - firstItem.Discount / 100) * (1 + (firstItem.VAT / 100));
+//                    receiptItemsByDrug.RemoveAt(0);
+//                }
+//                if (quantity > AppConstants.EspQuantity)
+//                {
+//                    inventoryValue += quantity * drugWarehouse.InitRetailPrice;
+//                }
+//                inventoryValue += drugWarehouse.InitReceiptValue;
+//            }
+        }
+        else
+        {
+            inventoryValue = thuocs.getLastInventoryQuantity().multiply(thuocs.getInitRetailPrice());
+        }
+        thuocs.setLastInventoryValue(inventoryValue);
+        if (thuocs.getLastInventoryValue().compareTo(AppConstants.EspQuantity) < 0)
+        {
+            thuocs.setLastInventoryValue(BigDecimal.ZERO);
+        }
+    }
+
+
+    private List<PhieuNhapChiTiets> getValidPhieuNhapChiTiet(Thuocs thuocs,ReportReq req){
+        PhieuNhapChiTietsReq phieuNhapChiTietsReq = new PhieuNhapChiTietsReq();
+        phieuNhapChiTietsReq.setNhaThuocMaNhaThuoc(thuocs.getNhaThuocMaNhaThuoc());
+        phieuNhapChiTietsReq.setThuocThuocId(10714554L);
+        phieuNhapChiTietsReq.setRecordStatusId(RecordStatusContains.ACTIVE);
+        List<PhieuNhapChiTiets> phieuNhapChiTietsList = phieuNhapChiTietsRepository.searchListReport(phieuNhapChiTietsReq);
+
+        for (PhieuNhapChiTiets ctiet:phieuNhapChiTietsList) {
+            Optional<PhieuNhaps> byId = phieuNhapsRepository.findById(ctiet.getPhieuNhapMaPhieuNhap());
+            if(byId.isPresent()){
+                ctiet.setLoaiXuatNhapMaLoaiXuatNhap(byId.get().getLoaiXuatNhapMaLoaiXuatNhap());
+            }
+        }
+
+        return phieuNhapChiTietsList;
+    }
+
+    private List<PhieuXuatChiTiets> getValidPhieuXuatChiTiet(Thuocs thuocs,ReportReq req){
+        PhieuXuatChiTietsReq pxCtietReq = new PhieuXuatChiTietsReq();
+        pxCtietReq.setNhaThuocMaNhaThuoc(thuocs.getNhaThuocMaNhaThuoc());
+        pxCtietReq.setThuocThuocId(thuocs.getId());
+        pxCtietReq.setRecordStatusId(RecordStatusContains.ACTIVE);
+        List<PhieuXuatChiTiets> phieuXuatChiTietsList = phieuXuatChiTietsRepository.searchListReport(pxCtietReq);
+
+        for (PhieuXuatChiTiets ctiet:phieuXuatChiTietsList) {
+            Optional<PhieuXuats> byId = phieuXuatsRepository.findById(ctiet.getPhieuXuatMaPhieuXuat());
+            if(byId.isPresent()){
+                ctiet.setLoaiXuatNhapMaLoaiXuatNhap(byId.get().getMaLoaiXuatNhap());
+            }
+        }
+
+        return phieuXuatChiTietsList;
+    }
 
     }
 

@@ -7,7 +7,6 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import vn.com.gsoft.report.entity.PhieuXuatChiTiets;
 import vn.com.gsoft.report.model.dto.ReportingDate.PhieuXuatChiTietsReq;
-import vn.com.gsoft.report.repository.BaseRepository;
 
 import java.util.List;
 
@@ -108,6 +107,17 @@ public interface PhieuXuatChiTietsRepository extends BaseRepository<PhieuXuatChi
           + " AND (:#{#param.toDateNgayXuat} IS NULL OR d.ngayXuat <= :#{#param.toDateNgayXuat}) "
           + " ORDER BY d.ngayXuat desc")
   List<PhieuXuatChiTiets> searchListCustom(@Param("param") PhieuXuatChiTietsReq param);
+
+  @Query("SELECT c FROM PhieuXuatChiTiets c " +
+          " JOIN PhieuNhaps pn on c.phieuXuatMaPhieuXuat = pn.id " +
+          " JOIN Thuocs thuoc on c.thuocThuocId = thuoc.id " +
+          " JOIN DonViTinhs dvi on c.donViTinhMaDonViTinh = dvi.id " +
+          " WHERE pn.nhaThuocMaNhaThuoc = :#{#param.nhaThuocMaNhaThuoc} "
+          + " AND (:#{#param.id} IS NULL OR c.id = :#{#param.id}) "
+          + " AND (:#{#param.thuocThuocId} IS NULL OR c.thuocThuocId = :#{#param.thuocThuocId}) "
+          + " AND (:#{#param.recordStatusId} IS NULL OR c.recordStatusId = :#{#param.recordStatusId}) "
+          + " ORDER BY c.id desc")
+  List<PhieuXuatChiTiets> searchListReport(@Param("param") PhieuXuatChiTietsReq param);
 
   List<PhieuXuatChiTiets> findAllByPhieuXuatMaPhieuXuat(Long id);
 }

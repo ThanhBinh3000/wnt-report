@@ -254,4 +254,142 @@ public class Thuocs extends BaseEntity {
 
     @Transient
     private String tenViTri; // Tên Vị Trí
+
+    @Transient
+    public BigDecimal firstInventoryQuantity ;
+
+    @Transient
+    public BigDecimal initReceiptQuantity ;
+
+    @Transient
+    public BigDecimal initReceiptValue ;
+
+    @Transient
+    public BigDecimal initRetailPrice ;
+    public BigDecimal lastReceiptRetailPrice ;
+
+
+    @Transient
+    public BigDecimal firstReceiptQuantity ;
+
+    @Transient
+    public BigDecimal firstDeliveryQuantity ;
+
+    @Transient
+    public BigDecimal firstInventoryValue ;
+
+    @Transient
+    public BigDecimal receiptInventoryQuantityInPeriod ;
+    @Transient
+    public BigDecimal lastReceiptQuantity ;
+
+    @Transient
+    public BigDecimal receiptInventoryValueInPeriod ;
+
+    @Transient
+    public BigDecimal deliveryInventoryQuantityInPeriod ;
+
+    @Transient
+    public BigDecimal lastDeliveryQuantity ;
+
+    @Transient
+    public BigDecimal deliveryInventoryValueInPeriod ;
+
+    @Transient
+    public BigDecimal lastInventoryQuantity ;
+
+    @Transient
+    public BigDecimal lastInventoryValue ;
+
+    @Transient
+    public BigDecimal firstInventoryQuantity1 ;
+
+    @Transient
+    public BigDecimal firstInventoryValue1 ;
+
+    @Transient
+    public BigDecimal receiptInventoryQuantityInPeriod1 ;
+
+    @Transient
+    public BigDecimal receiptInventoryValueInPeriod1 ;
+
+    @Transient
+    public BigDecimal deliveryInventoryQuantityInPeriod1 ;
+
+    @Transient
+    public BigDecimal deliveryInventoryValueInPeriod1 ;
+
+    @Transient
+    public BigDecimal lastInventoryQuantity1 ;
+
+    @Transient
+    public BigDecimal lastInventoryValue1 ;
+
+
+
+    public BigDecimal getFirstInventoryQuantity() {
+        return initReceiptQuantity.add(firstReceiptQuantity).subtract(firstDeliveryQuantity);
+    }
+
+    public BigDecimal getFirstInventoryValue() {
+        return firstInventoryValue;
+    }
+
+    public BigDecimal getReceiptInventoryQuantityInPeriod() {
+
+        return lastReceiptQuantity.subtract(firstReceiptQuantity);
+    }
+
+    public BigDecimal getReceiptInventoryValueInPeriod() {
+        return receiptInventoryValueInPeriod;
+    }
+
+    public BigDecimal getDeliveryInventoryQuantityInPeriod() {
+
+        return lastDeliveryQuantity.subtract(firstDeliveryQuantity);
+    }
+
+    public BigDecimal getDeliveryInventoryValueInPeriod() {
+        return deliveryInventoryValueInPeriod;
+    }
+
+    public BigDecimal getLastInventoryQuantity() {
+        return initReceiptQuantity.add(lastReceiptQuantity).subtract(lastDeliveryQuantity);
+    }
+
+    public BigDecimal getLastInventoryValue() {
+        return lastInventoryValue;
+    }
+
+    public BigDecimal getFirstInventoryQuantity1() {
+        return firstInventoryQuantity1;
+    }
+
+    public BigDecimal getFirstInventoryValue1() {
+        return firstInventoryValue1;
+    }
+
+    public BigDecimal getReceiptInventoryQuantityInPeriod1() {
+        return receiptInventoryQuantityInPeriod1;
+    }
+
+    public BigDecimal getReceiptInventoryValueInPeriod1() {
+        return receiptInventoryValueInPeriod1;
+    }
+
+    public BigDecimal getDeliveryInventoryQuantityInPeriod1() {
+        return deliveryInventoryQuantityInPeriod1;
+    }
+
+    public BigDecimal getDeliveryInventoryValueInPeriod1() {
+        return deliveryInventoryValueInPeriod1;
+    }
+
+    public BigDecimal getLastInventoryQuantity1() {
+        return lastInventoryQuantity1;
+    }
+
+    public BigDecimal getLastInventoryValue1() {
+        return lastInventoryValue1;
+    }
 }

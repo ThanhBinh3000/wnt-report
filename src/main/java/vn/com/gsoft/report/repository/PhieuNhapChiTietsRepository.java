@@ -106,6 +106,19 @@ public interface PhieuNhapChiTietsRepository extends BaseRepository<PhieuNhapChi
   )
   List<PhieuNhapChiTiets> searchList(@Param("param") PhieuNhapChiTietsReq param);
 
+
+  @Query("SELECT c FROM PhieuNhapChiTiets c " +
+          " JOIN PhieuNhaps pn on c.phieuNhapMaPhieuNhap = pn.id " +
+          " JOIN Thuocs thuoc on c.thuocThuocId = thuoc.id " +
+          " JOIN DonViTinhs dvi on c.donViTinhMaDonViTinh = dvi.id " +
+          " WHERE pn.nhaThuocMaNhaThuoc = :#{#param.nhaThuocMaNhaThuoc} "
+          + " AND (:#{#param.id} IS NULL OR c.id = :#{#param.id}) "
+          + " AND (:#{#param.thuocThuocId} IS NULL OR c.thuocThuocId = :#{#param.thuocThuocId}) "
+          + " AND (:#{#param.recordStatusId} IS NULL OR pn.recordStatusId = :#{#param.recordStatusId}) "
+          + " ORDER BY pn.ngayNhap desc"
+  )
+  List<PhieuNhapChiTiets> searchListReport(@Param("param") PhieuNhapChiTietsReq param);
+
   Optional<PhieuNhapChiTiets> findByThuocThuocId(Long idThuoc);
   List<PhieuNhapChiTiets> findAllByPhieuNhapMaPhieuNhap(Long phieuNhapMaPhieuNhap);
 }
