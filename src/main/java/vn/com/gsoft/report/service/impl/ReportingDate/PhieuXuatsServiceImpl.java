@@ -56,6 +56,7 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
     @Override
     public Page<PhieuXuats> searchReportingDate(PhieuXuatsReq req) throws Exception {
         Profile userInfo = this.getLoggedUser();
+
         if (userInfo == null)
             throw new Exception("Bad request.");
         Pageable pageable = PageRequest.of(req.getPaggingReq().getPage(), req.getPaggingReq().getLimit());
